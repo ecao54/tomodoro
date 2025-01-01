@@ -4,11 +4,12 @@ import { ImageBackground, StyleSheet, View } from 'react-native';
 function HomeScreen(props) {
     return (
         <View style={styles.background}>
-            <View style={styles.buttonBar}></View>
-            <View style={styles.homeButton}></View>
-            <View style={styles.friendsButton}></View>
-            <View style={styles.statsButton}></View>
-            <View style={styles.settingsButton}></View>
+            <View style={styles.buttonBar}>
+                <View style={styles.homeButton}></View>
+                <View style={styles.friendsButton}></View>
+                <View style={styles.statsButton}></View>
+                <View style={styles.settingsButton}></View>
+            </View>
         </View>
     );
 }
@@ -16,22 +17,22 @@ function HomeScreen(props) {
 const styles = StyleSheet.create({
     background: {
         flex: 1,
-        justifyContent: "flex-end",
         backgroundColor: "#FDFAF6",
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingBottom: '36',
+
     },
     buttonBar: {
         width: '87%', 
         height: '7.28%', 
         paddingLeft: 18, 
         paddingRight: 18, 
-        paddingTop: 8, 
+        paddingTop: 8,
         paddingBottom: 8, 
         backgroundColor: '#686864', 
         borderRadius: 15, 
-        justifyContent: 'flex-start', 
-        alignItems: 'center', 
         gap: 25, 
-        display: 'inline-flex'
     },
     /* homeButton: {
         width: '100%',
