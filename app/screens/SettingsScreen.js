@@ -4,7 +4,7 @@ import { ImageBackground, StyleSheet, View } from 'react-native';
 import ButtonBar from '../components/ButtonBar';
 import Background from '../components/Background';
 
-function HomeScreen(props) {
+function SettingsScreen(props) {
     return (
         <Background>
             <ButtonBar />
@@ -12,4 +12,4 @@ function HomeScreen(props) {
     );
 }
 
-export default HomeScreen;
+export default SettingsScreen;
