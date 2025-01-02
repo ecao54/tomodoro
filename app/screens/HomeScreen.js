@@ -1,12 +1,13 @@
 import React from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
-import { Timer, buttonBar } from '../components';
+import Timer from '../components/Timer';
+import ButtonBar from '../components/ButtonBar';
 
-function HomeScreen(props) {
+function HomeScreen() {
     return (
         <View style={styles.background}>
             <Timer />
-            <buttonBar />
+            <ButtonBar />
         </View>
     );
 }
@@ -18,7 +19,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingBottom: '36',
-
     },
 })
 

@@ -1,15 +1,13 @@
 import React from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
 
-function buttonBar(props) {
+function ButtonBar(props) {
     return (
-        <View style={styles.background}>
-            <View style={styles.buttonBar}>
-                <View style={styles.homeButton}></View>
-                <View style={styles.friendsButton}></View>
-                <View style={styles.statsButton}></View>
-                <View style={styles.settingsButton}></View>
-            </View>
+        <View style={styles.buttonBar}>
+            <View style={styles.homeButton}></View>
+            <View style={styles.friendsButton}></View>
+            <View style={styles.statsButton}></View>
+            <View style={styles.settingsButton}></View>
         </View>
     );
 }
@@ -47,4 +45,4 @@ const styles = StyleSheet.create({
         backgroundColor: "fc5c65",
     } */
 })
-export default buttonBar;
+export default ButtonBar;
