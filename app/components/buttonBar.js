@@ -15,14 +15,6 @@ function buttonBar(props) {
 }
 
 const styles = StyleSheet.create({
-    background: {
-        flex: 1,
-        backgroundColor: "#FDFAF6",
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingBottom: '36',
-
-    },
     buttonBar: {
         width: '87%', 
         height: '7.28%', 

@@ -1,17 +1,25 @@
 import React from 'react';
-import { ImageBackground, StyleSheet, View, buttonBar } from 'react-native';
+import { ImageBackground, StyleSheet, View } from 'react-native';
+import { Timer, buttonBar } from '../components';
 
 function HomeScreen(props) {
     return (
         <View style={styles.background}>
-            <View style={styles.buttonBar}>
-                <View style={styles.homeButton}></View>
-                <View style={styles.friendsButton}></View>
-                <View style={styles.statsButton}></View>
-                <View style={styles.settingsButton}></View>
-            </View>
+            <Timer />
+            <buttonBar />
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    background: {
+        flex: 1,
+        backgroundColor: "#FDFAF6",
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingBottom: '36',
+
+    },
+})
 
 export default HomeScreen;
