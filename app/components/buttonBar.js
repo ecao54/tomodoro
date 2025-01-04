@@ -12,25 +12,25 @@ function ButtonBar() {
             <TouchableOpacity 
                 style={[styles.button, route.name === 'Home' && styles.activeButton]}
                 onPress={() => navigation.navigate('Home')}>
-                <Timer color="#FBFBF2" /> 
+                <Timer color="#FBFBF2" size={30} /> 
             </TouchableOpacity>
 
             <TouchableOpacity 
                 style={[styles.button, route.name === 'Friends' && styles.activeButton]}
                 onPress={() => navigation.navigate('Friends')}>
-                <Users color="#FBFBF2" />
+                <Users color="#FBFBF2" size={30} />
             </TouchableOpacity>
 
             <TouchableOpacity 
                 style={[styles.button, route.name === 'Stats' && styles.activeButton]}
                 onPress={() => navigation.navigate('Stats')}>
-                <ChartColumn color="#FBFBF2" />
+                <ChartColumn color="#FBFBF2" size={30} />
             </TouchableOpacity>
 
             <TouchableOpacity 
                 style={[styles.button, route.name === 'Settings' && styles.activeButton]}
                 onPress={() => navigation.navigate('Settings')}>
-                <Settings color="#FBFBF2" />
+                <Settings color="#FBFBF2" size={30} />
             </TouchableOpacity>
         </View>
     );
