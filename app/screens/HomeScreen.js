@@ -1,7 +1,8 @@
 import React from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
 import ButtonBar from '../components/ButtonBar';
-import Timer from '../components/TImer';
+import Timer from '../components/Timer';
+import Background from '../components/Background';
 
 function HomeScreen() {
     return (
