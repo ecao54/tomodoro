@@ -3,10 +3,16 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Play, Pause, RotateCcw } from 'lucide-react-native';
 import { TouchableWithoutFeedback } from 'react-native';
 
-function Timer() {
-    const POMODORO = 1500; // 25 minutes in seconds
-    const SHORT_BREAK = 300; // 5 minutes in seconds
-    const LONG_BREAK = 900; // 15 minutes in seconds
+function Timer(props) {
+    const { timerValues = {
+        pomodoro: '25',
+        shortBreak: '5',
+        longBreak: '15'
+    }} = props;
+
+    const POMODORO = parseInt(timerValues.pomodoro) * 60; // 25 minutes in seconds
+    const SHORT_BREAK = parseInt(timerValues.shortBreak) * 60; // 5 minutes in seconds
+    const LONG_BREAK = parseInt(timerValues.longBreak) * 60; // 15 minutes in seconds
 
     const [timeRemaining, setTimeRemaining] = useState(POMODORO);
     const [isRunning, setIsRunning] = useState(false);
@@ -32,6 +38,23 @@ function Timer() {
         return () => clearInterval(intervalId);
     }, [isRunning]);
 
+    useEffect(() => {
+        // Update the current timer if it's not running
+        if (!isRunning) {
+            switch (mode) {
+                case 'pomodoro':
+                    setTimeRemaining(POMODORO);
+                    break;
+                case 'short break':
+                    setTimeRemaining(SHORT_BREAK);
+                    break;
+                case 'long break':
+                    setTimeRemaining(LONG_BREAK);
+                    break;
+            }
+        }
+    }, [timerValues, mode]);
+    
     const handlePlayPause = () => {
         if (isRunning) {
             handleRestart();
