@@ -1,27 +1,25 @@
 import React from 'react';
-import { ImageBackground, StyleSheet, View } from 'react-native';
+import { Dimensions, ImageBackground, Image, StyleSheet, View, TouchableWithoutFeedbac, useWindowDimensions} from 'react-native';
 import ButtonBar from '../components/ButtonBar';
 import Timer from '../components/Timer';
 import Background from '../components/Background';
 
 function HomeScreen() {
     return (
-        <Background>
+        <ImageBackground style={styles.container} source={require('../assets/tomato-base.png')}>
             <Timer />
             <ButtonBar />
-        </Background>
+        </ImageBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    background: {
+    container: {
         flex: 1,
         backgroundColor: "#FDFAF6",
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingBottom: '36',
-
-    },
+    }
 })
 
 export default HomeScreen;
