@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Play, Pause, RotateCcw } from 'lucide-react-native';
+import { TouchableWithoutFeedback } from 'react-native';
 
 function Timer() {
     const POMODORO = 1500; // 25 minutes in seconds
@@ -32,7 +33,11 @@ function Timer() {
     }, [isRunning]);
 
     const handlePlayPause = () => {
-        setIsRunning((prev) => !prev);
+        if (isRunning) {
+            handleRestart();
+        } else {
+            setIsRunning(true);
+        }
     };
 
     const handleRestart = () => {
@@ -70,43 +75,62 @@ function Timer() {
         }
     };
 
+    const handleDisruption = () => {
+        if (isRunning && mode === 'pomodoro') {
+            handleRestart();
+        }
+    }
+
     return (
-        <View style={styles.container}>
-            <View style={styles.timer}>
-                <Text style={styles.modeTitle}>{mode}</Text>
-                <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
-            </View>
-            <View style={styles.buttonsContainer}>
+        <TouchableWithoutFeedback onPress={handleDisruption}>
+            <View style={styles.container}>
+                <View style={styles.timer}>
+                    <Text style={styles.modeTitle}>{mode}</Text>
+                    <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
+                </View>
                 <Pressable
-                    style={styles.button}
-                    onPress={handleRestart}
-                >
-                    <RotateCcw style={styles.icon} size={18} />
-                </Pressable>
-                <Pressable
-                    style={styles.button}
+                    style={({ pressed }) => [
+                        { backgroundColor: pressed ? '#D8D3CA' : '#e4e0d9' },
+                        styles.button
+                    ]}
                     onPress={handlePlayPause}
                 >
                     {isRunning ? (
-                        <Pause style={styles.icon} size={18} />
-                    ) : (
-                        <Play style={styles.icon} size={18} />
-                    )}
+                            <RotateCcw style={styles.icon} size={20} />
+                        ) : (
+                            <Play style={styles.icon} size={20} />
+                        )}
                 </Pressable>
+                {/* <View style={styles.buttonsContainer}>
+                    <Pressable
+                        style={({ pressed }) => [
+                            { backgroundColor: pressed ? '#D8D3CA' : '#e4e0d9' },
+                            styles.button
+                        ]}
+                        onPress={handlePlayPause}
+                    >
+                        {isRunning ? (
+                            <Pause style={styles.icon} size={18} />
+                        ) : (
+                            <Play style={styles.icon} size={18} />
+                        )}
+                    </Pressable>
+                </View> */}
             </View>
-        </View>
+        </TouchableWithoutFeedback>
     );
 }
 
 const styles = StyleSheet.create({
     button: {
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        flexDirection: 'row',
+        alignSelf: "stretch",
+        borderTopLeftRadius: 5,
+        borderTopRightRadius: 15,
+        borderBottomRightRadius: 15,
+        borderBottomLeftRadius: 5,
         justifyContent: 'center',
-        backgroundColor: '#e4e0d9',
-        flex: 1,
+        alignItems: 'center',
+        padding: 14,
     },
     modeTitle: {
         fontSize: 18,
@@ -121,9 +145,12 @@ const styles = StyleSheet.create({
         marginTop: -2,
     },
     timer: {
-        borderRadius: 15,
-        paddingHorizontal: 60,
+        borderTopLeftRadius: 15,
+        borderTopRightRadius: 5,
+        borderBottomRightRadius: 5,
+        borderBottomLeftRadius: 15,
         paddingVertical: 12,
+        flex: 1,
         justifyContent: 'center',
         backgroundColor: '#e4e0d9',
         alignSelf: 'stretch',
@@ -141,11 +168,13 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     container: {
-        width: 283,
+        width: 293,
+        top: 70,
         gap: 8,
-        flex: 1,
-        marginTop: 70,
-    },
+        position: "absolute",
+        alignItems: 'center',
+        flexDirection: 'row'
+    }
 });
 
 export default Timer;
