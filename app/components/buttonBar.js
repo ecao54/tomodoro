@@ -49,7 +49,8 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         flexDirection: 'row',
         gap: 25,
-        justifyContent: 'center'
+        justifyContent: 'center',
+        bottom: 36
     },
     button: {
         width: 58,
