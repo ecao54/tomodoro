@@ -4,16 +4,18 @@ import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useState, useRef } from 'react';
 
+const defaultValues = {
+    pomodoro: '25',
+    shortBreak: '5',
+    longBreak: '15'
+};
+
 function TimerDurations(props) {
     const navigation = useNavigation();
     const route = useRoute();
     
     const { currentValues, onSave } = route.params || {
-        currentValues: {
-            pomodoro: '25',
-            shortBreak: '5',
-            longBreak: '15'
-        },
+        currentValues: defaultValues,
         onSave: () => {}
     };
 
@@ -21,15 +23,21 @@ function TimerDurations(props) {
     const shortBreakRef = useRef(null);
     const longBreakRef = useRef(null);
 
-    const [pomodoroTime, setPomodoroTime] = useState(currentValues.pomodoro);
-    const [shortBreakTime, setShortBreakTime] = useState(currentValues.shortBreak);
-    const [longBreakTime, setLongBreakTime] = useState(currentValues.longBreak);
+    const [pomodoroTime, setPomodoroTime] = useState(
+        currentValues.pomodoro === defaultValues.pomodoro ? '' : currentValues.pomodoro
+    );
+    const [shortBreakTime, setShortBreakTime] = useState(
+        currentValues.shortBreak === defaultValues.shortBreak ? '' : currentValues.shortBreak
+    );
+    const [longBreakTime, setLongBreakTime] = useState(
+        currentValues.longBreak === defaultValues.longBreak ? '' : currentValues.longBreak
+    );
 
     const handleSave = () => {
         const newValues = {
-            pomodoro: pomodoroTime || currentValues.pomodoro,
-            shortBreak: shortBreakTime || currentValues.shortBreak,
-            longBreak: longBreakTime || currentValues.longBreak
+            pomodoro: pomodoroTime || defaultValues.pomodoro,
+            shortBreak: shortBreakTime || defaultValues.shortBreak,
+            longBreak: longBreakTime || defaultValues.longBreak
         };
         onSave(newValues);
         navigation.goBack();
@@ -41,7 +49,26 @@ function TimerDurations(props) {
         setLongBreakTime('');
     };
 
-    
+    const handleInputChange = (value, setter) => {
+        setter(value);
+        hasChanges(true);
+    };
+
+    const hasChanges = () => {
+        const isPomodoroDifferent = 
+            !(pomodoroTime === '' && currentValues.pomodoro === defaultValues.pomodoro) && 
+            pomodoroTime !== currentValues.pomodoro;
+            
+        const isShortBreakDifferent = 
+            !(shortBreakTime === '' && currentValues.shortBreak === defaultValues.shortBreak) && 
+            shortBreakTime !== currentValues.shortBreak;
+            
+        const isLongBreakDifferent = 
+            !(longBreakTime === '' && currentValues.longBreak === defaultValues.longBreak) && 
+            longBreakTime !== currentValues.longBreak;
+        
+        return isPomodoroDifferent || isShortBreakDifferent || isLongBreakDifferent;
+    };
     
     
     
@@ -71,13 +98,12 @@ function TimerDurations(props) {
                                         ref={pomodoroRef}
                                         style={[styles.pomodoroText, {color: "#151514"}]}
                                         value={pomodoroTime}
-                                        onChangeText={setPomodoroTime}
+                                        onChangeText={(value) => handleInputChange(value, setPomodoroTime)}
                                         keyboardType="number-pad"
                                         maxLength={2}
-                                        placeholder={currentValues.pomodoro}
+                                        placeholder={defaultValues.pomodoro}
                                         placeholderTextColor="#969691"
                                     />
-                                    {/* <Text style={[styles.pomodoroText, {color: "#969691"}]}>25</Text> */}
                                     <Text style={styles.pomodoroText}>minutes</Text>
                                 </Pressable>
                             </View>
@@ -93,10 +119,9 @@ function TimerDurations(props) {
                                         onChangeText={setShortBreakTime}
                                         keyboardType="number-pad"
                                         maxLength={2}
-                                        placeholder={currentValues.shortBreak}
+                                        placeholder={defaultValues.shortBreak}
                                         placeholderTextColor="#969691"
                                     />
-                                    {/* <Text style={[styles.pomodoroText, {color: "#969691"}]}>5</Text> */}
                                     <Text style={styles.pomodoroText}>minutes</Text>
                                 </Pressable>
                             </View>
@@ -112,10 +137,9 @@ function TimerDurations(props) {
                                         onChangeText={setLongBreakTime}
                                         keyboardType="number-pad"
                                         maxLength={2}
-                                        placeholder={currentValues.longBreak}
+                                        placeholder={defaultValues.longBreak}
                                         placeholderTextColor="#969691"
                                     />
-                                    {/* <Text style={[styles.pomodoroText, {color: "#969691"}]}>15</Text> */}
                                     <Text style={styles.pomodoroText}>minutes</Text>
                                 </Pressable>
                             </View>
@@ -124,12 +148,20 @@ function TimerDurations(props) {
                             <TouchableOpacity 
                                 style={[styles.resetButton, styles.buttonGeneral]}
                                 onPress={handleReset}>
-                                <Text style={[styles.buttonText, {color: "#969691"}]}>reset</Text>
+                                <Text style={[styles.buttonText, {color: "#151514"}]}>reset</Text>
                             </TouchableOpacity>
                             <TouchableOpacity 
-                                style={[styles.saveButton, styles.buttonGeneral]}
+                                style={[
+                                    styles.saveButton, 
+                                    styles.buttonGeneral, 
+                                    !hasChanges() && styles.disabledButton
+                                ]}
+                                disabled={!hasChanges()}
                                 onPress={handleSave}>
-                                <Text style={[styles.buttonText, {color: "#FDFAF6"}]}>save</Text>
+                                <Text style={[
+                                    styles.buttonText, 
+                                    {color: hasChanges() ? "#FDFAF6" : "#969691"}
+                                ]}>save</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -217,6 +249,9 @@ const styles = StyleSheet.create({
         fontFamily: "Anuphan-SemiBold",
         fontWeight: "600",
         fontSize: 18
+    },
+    disabledButton: {
+        backgroundColor: '#E4E0D9',
     }
 });
 
