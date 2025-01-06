@@ -1,6 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from './app/screens/HomeScreen';
 import FriendsScreen from './app/screens/FriendsScreen';
 import StatsScreen from './app/screens/StatsScreen';
@@ -10,6 +12,35 @@ import TimerDurations from './app/screens/TimerDurations';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const [timerValues, setTimerValues] = useState({
+      pomodoro: '25',
+      shortBreak: '5',
+      longBreak: '15'
+  });
+
+  const handleTimerUpdate = async (newValues) => {
+      setTimerValues(newValues);
+      try {
+          await AsyncStorage.setItem('timerValues', JSON.stringify(newValues));
+      } catch (error) {
+          console.log('Error saving values:', error);
+      }
+  };
+
+  useEffect(() => {
+    const loadInitialValues = async () => {
+        try {
+            const savedValues = await AsyncStorage.getItem('timerValues');
+            if (savedValues) {
+                setTimerValues(JSON.parse(savedValues));
+            }
+        } catch (error) {
+            console.log('Error loading initial values:', error);
+        }
+    };
+    loadInitialValues();
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator 
@@ -17,11 +48,10 @@ export default function App() {
           animation: 'none'
         }}
       >
-        <Stack.Screen 
-          name="Home" 
-          component={HomeScreen}
-          options={{ headerShown: false }}
-        />
+        <Stack.Screen name="Home" options={{ headerShown: false }}>
+          {props => <HomeScreen {...props}
+          timerValues={timerValues} />}
+        </Stack.Screen> 
         <Stack.Screen 
           name="Friends" 
           component={FriendsScreen}
@@ -34,9 +64,10 @@ export default function App() {
         />
         <Stack.Screen 
           name="Settings" 
-          component={SettingsScreen}
-          options={{ headerShown: false }}
-        />
+          options={{ headerShown: false }}>
+          {props => <SettingsScreen {...props} timerValues={timerValues} 
+        onUpdate={handleTimerUpdate} />}
+        </Stack.Screen>
         <Stack.Screen 
           name="TimerDurations" 
           component={TimerDurations}

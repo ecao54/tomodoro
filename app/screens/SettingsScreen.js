@@ -7,15 +7,9 @@ import Background from '../components/Background';
 import { ChevronRight } from 'lucide-react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
-function SettingsScreen(props) {
+function SettingsScreen( {timerValues, onUpdate }) {
     const navigation = useNavigation();
     const route = useRoute();
-    
-    const [timerValues, setTimerValues] = useState({
-        pomodoro: '25',
-        shortBreak: '5',
-        longBreak: '15'
-    });
 
     const handlePress = () => {
         console.log('button pressed');
@@ -29,19 +23,10 @@ function SettingsScreen(props) {
         try {
             const savedValues = await AsyncStorage.getItem('timerValues');
             if (savedValues) {
-                setTimerValues(JSON.parse(savedValues));
+                onUpdate(JSON.parse(savedValues));
             }
         } catch (error) {
             console.log('Error loading saved values:', error);
-        }
-    };
-
-    const handleTimerUpdate = async (newValues) => {
-        setTimerValues(newValues);
-        try {
-            await AsyncStorage.setItem('timerValues', JSON.stringify(newValues));
-        } catch (error) {
-            console.log('Error saving values:', error);
         }
     };
 
@@ -52,10 +37,9 @@ function SettingsScreen(props) {
                     <Text style={styles.subtitles}>settings</Text>
                     <View style={styles.settingsFrame}>
                         <TouchableOpacity 
-                            //style={[route.name === 'TimerDurations']}
                             onPress={() => navigation.navigate('TimerDurations', {
                                 currentValues: timerValues,
-                                onSave: handleTimerUpdate
+                                onSave: onUpdate
                             })}>
                             <View style={styles.timerFrame}>
                                 <View style={styles.textFormat}>

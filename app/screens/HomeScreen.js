@@ -4,10 +4,10 @@ import ButtonBar from '../components/ButtonBar';
 import Timer from '../components/Timer';
 import Background from '../components/Background';
 
-function HomeScreen() {
+function HomeScreen( { timerValues }) {
     return (
         <Background>
-            <Timer />
+            <Timer timerValues={timerValues}/>
             <ButtonBar />
         </Background>
     );
