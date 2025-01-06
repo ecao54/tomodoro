@@ -5,6 +5,7 @@ import HomeScreen from './app/screens/HomeScreen';
 import FriendsScreen from './app/screens/FriendsScreen';
 import StatsScreen from './app/screens/StatsScreen';
 import SettingsScreen from './app/screens/SettingsScreen';
+import TimerDurations from './app/screens/TimerDurations';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,11 @@ export default function App() {
         <Stack.Screen 
           name="Settings" 
           component={SettingsScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="TimerDurations" 
+          component={TimerDurations}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
