@@ -8,10 +8,18 @@ import FriendsScreen from './app/screens/FriendsScreen';
 import StatsScreen from './app/screens/StatsScreen';
 import SettingsScreen from './app/screens/SettingsScreen';
 import TimerDurations from './app/screens/TimerDurations';
+import WelcomeScreen from './app/screens/WelcomeScreen';
+import SignUp from './app/screens/SignUp';
+import Login from './app/screens/Login';
+import EmailSignUp from './app/screens/EmailSignUp';
+import { onAuthStateChanged } from 'firebase/auth';
+import { FIREBASE_AUTH } from './FirebaseConfig';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator()
 
 export default function App() {
+  const [user, setUser] = useState(null);
+
   const [timerValues, setTimerValues] = useState({
       pomodoro: '25',
       shortBreak: '5',
@@ -41,38 +49,74 @@ export default function App() {
     loadInitialValues();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (user) => {
+        setUser(user);
+    });
+    
+    return unsubscribe;
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator 
-        screenOptions={{
-          animation: 'none'
-        }}
+        screenOptions={{ animation: 'none' }}
+        initialRouteName='Welcome'
       >
-        <Stack.Screen name="Home" options={{ headerShown: false }}>
-          {props => <HomeScreen {...props}
-          timerValues={timerValues} />}
-        </Stack.Screen> 
-        <Stack.Screen 
-          name="Friends" 
-          component={FriendsScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="Stats" 
-          component={StatsScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="Settings" 
-          options={{ headerShown: false }}>
-          {props => <SettingsScreen {...props} timerValues={timerValues} 
-        onUpdate={handleTimerUpdate} />}
-        </Stack.Screen>
-        <Stack.Screen 
-          name="TimerDurations" 
-          component={TimerDurations}
-          options={{ headerShown: false }}
-        />
+        {!user ? (
+          <>
+            <Stack.Screen 
+              name='Welcome' 
+              component={WelcomeScreen} 
+              options={{ headerShown: false }} 
+            />
+            <Stack.Screen 
+              name='Login' 
+              component={Login} 
+              options={{ headerShown: false }} 
+            />
+            <Stack.Screen 
+              name='SignUp' 
+              component={SignUp} 
+              options={{ headerShown: false }} 
+            />
+            <Stack.Screen 
+              name='EmailSignUp' 
+              component={EmailSignUp} 
+              options={{ headerShown: false }} 
+            />
+          </>
+        ) : (
+          <>
+            <Stack.Screen 
+              name="Home" 
+              options={{ headerShown: false }}>
+              {props => <HomeScreen {...props}
+              timerValues={timerValues} />}
+            </Stack.Screen> 
+            <Stack.Screen 
+              name="Friends" 
+              component={FriendsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen 
+              name="Stats" 
+              component={StatsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen 
+              name="Settings" 
+              options={{ headerShown: false }}>
+              {props => <SettingsScreen {...props} timerValues={timerValues} 
+              onUpdate={handleTimerUpdate} />}
+            </Stack.Screen>
+            <Stack.Screen 
+              name="TimerDurations" 
+              component={TimerDurations}
+              options={{ headerShown: false }}
+            />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
