@@ -7,7 +7,7 @@ import Background from '../components/Background';
 import { ChevronRight } from 'lucide-react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
-function SettingsScreen( {timerValues, onUpdate }) {
+function SettingsScreen( { timerValues, onUpdate }) {
     const navigation = useNavigation();
     const route = useRoute();
 
