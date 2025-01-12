@@ -4,10 +4,16 @@ import ButtonBar from '../components/ButtonBar';
 import { Play, RotateCcw } from 'lucide-react-native';
 import { TouchableWithoutFeedback } from 'react-native-web';
 
-function HomeScreen() {
-    const POMODORO = 1500; // 25 minutes in seconds = 1500
-    const SHORT_BREAK = 300; // 5 minutes in seconds = 300
-    const LONG_BREAK = 900; // 15 minutes in seconds = 900
+function HomeScreen(props) {
+    const { timerValues = {
+        pomodoro: '25',
+        shortBreak: '5',
+        longBreak: '15'
+    }} = props;
+
+    const POMODORO = parseInt(timerValues.pomodoro) * 60; // 25 minutes in seconds
+    const SHORT_BREAK = parseInt(timerValues.shortBreak) * 60; // 5 minutes in seconds
+    const LONG_BREAK = parseInt(timerValues.longBreak) * 60; // 15 minutes in seconds
 
     const [cycleCount, setCycleCount] = useState(0);
     const [mode, setMode] = useState('pomodoro'); // 'pomodoro', 'short break', 'long break'
