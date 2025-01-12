@@ -6,8 +6,10 @@ import ButtonBar from '../components/ButtonBar';
 import Background from '../components/Background';
 import { ChevronRight } from 'lucide-react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { FIREBASE_AUTH } from '../../FirebaseConfig';
+import { signOut } from 'firebase/auth';
 
-function SettingsScreen( {timerValues, onUpdate }) {
+function SettingsScreen( { timerValues, onUpdate }) {
     const navigation = useNavigation();
     const route = useRoute();
 
@@ -27,6 +29,16 @@ function SettingsScreen( {timerValues, onUpdate }) {
             }
         } catch (error) {
             console.log('Error loading saved values:', error);
+        }
+    };
+
+    const handleSignOut = async () => {
+        try {
+            await signOut(FIREBASE_AUTH);
+            console.log('User signed out successfully');
+        } catch (error) {
+            console.error('Error signing out:', error);
+            alert('Error signing out');
         }
     };
 
@@ -73,6 +85,11 @@ function SettingsScreen( {timerValues, onUpdate }) {
                                 <View style={styles.textFormat}>
                                     <Text style={styles.bodyText}>notifications</Text>
                                     <ChevronRight color="#969691" size={23} />
+                                </View>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleSignOut}>
+                                <View style={styles.textFormat}>
+                                    <Text style={styles.bodyText}>sign out</Text>
                                 </View>
                             </TouchableOpacity>
                         </View>
