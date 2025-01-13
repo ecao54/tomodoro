@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
         width: '100%',
         gap: 12,
         flexDirection: 'row',
-        marginBottom: 10
+        marginBottom: 40,
     },
     buttonGeneral: {
         paddingVertical: 14,
