@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ImageBackground, StyleSheet, View, Text, Pressable } from 'react-native';
 import ButtonBar from '../components/ButtonBar';
 import { Play, RotateCcw } from 'lucide-react-native';
+import BackgroundTimer from 'react-native-background-timer';
 import { TouchableWithoutFeedback } from 'react-native-web';
 
 function HomeScreen(props) {
@@ -31,23 +32,17 @@ function HomeScreen(props) {
 
     // Handle play
     useEffect(() => {
-        let intervalId;
         if (isRunning) {
-            intervalId = setInterval(() => {
-                setTimeRemaining((prevSeconds) => {
-                    if (prevSeconds <= 0) {
-                        clearInterval(intervalId);
-                        handleModeSwitch();
-                        return 0;
-                    } else {
-                        return prevSeconds - 1;
-                    }
-                });
+            BackgroundTimer.runBackgroundTimer(() => {
+                setTimeRemaining((prevTime) => Math.max(prevTime - 1, 0));
             }, 1000);
+        } else {
+            BackgroundTimer.stopBackgroundTimer();
         }
-
-        return () => clearInterval(intervalId);
-    }, [isRunning]); // Re-run effect when isRunning changes
+    
+        return () => BackgroundTimer.stopBackgroundTimer();
+    }, [isRunning]);
+    
 
     useEffect(() => {
         const newImage = getImageSource();
