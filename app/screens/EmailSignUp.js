@@ -1,115 +1,200 @@
-// SignUp.js
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native'
-import React, { useState } from 'react'
+import { Animated, View, Text, StyleSheet, TextInput, TouchableOpacity, Image, TouchableWithoutFeedback, Keyboard } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { FIREBASE_AUTH } from '../../FirebaseConfig'
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import Background from '../components/Background';
-import Google from '../assets/google-logo.png';
-import Apple from '../assets/apple-logo.png';
-import { Mail } from 'lucide-react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
+
+const FloatingLabelInput = ({ label, value, onChangeText, secureTextEntry, ...props }) => {
+    const [animation] = useState(new Animated.Value(value ? 1 : 0));
+    const [isFocused, setIsFocused] = useState(false);
+
+    useEffect(() => {
+        Animated.timing(animation, {
+            toValue: (isFocused || value.length > 0) ? 1 : 0,
+            duration: 75,
+            useNativeDriver: false,
+        }).start();
+    }, [isFocused, value]);
+  
+    const labelStyle = {
+        position: 'absolute',
+        left: 0,
+        top: animation.interpolate({
+            inputRange: [0, 1],
+            outputRange: [20, 8],
+        }),
+        fontSize: animation.interpolate({
+            inputRange: [0, 1],
+            outputRange: [18, 14],
+        }),
+        color: '#686864',
+    };
+  
+    return (
+        <View style={styles.floatingInputContainer}>
+            <View style={styles.inputWrapper}>
+                <Animated.Text style={labelStyle} numberOfLines={1}>
+                    {label}
+                </Animated.Text>
+                <TextInput
+                    style={styles.floatingInput}
+                    value={value}
+                    onChangeText={onChangeText}
+                    secureTextEntry={secureTextEntry}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    {...props}
+                />
+            </View>
+        </View>
+    );
+};
 
 const EmailSignUp = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    
+    const [showPassword, setShowPassword] = useState(false);
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+
+
     const signUp = async () => {
+        setEmailError('');
+        setPasswordError('');
+
+        let hasError = false;
+        
+        if (email === '') {
+            setEmailError('please enter email');
+            hasError = true;
+        }
+
+        if (password === '') {
+            setPasswordError('please enter password');
+            hasError = true;
+        }
+
+        if (hasError) {
+            return;
+        }
+
         // basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            alert('Please enter a valid email address');
-            return;
+            setEmailError('please enter a valid email address');
+            hasError = true;
         }
 
         // password must contain a symbol or number and at least 8 characters
         const passwordRegex = /^(?=.*[0-9!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
         if (!passwordRegex.test(password)) {
-            alert('Password must contain at least:\n- 8 characters\n- One number or special character');
-            return;
+            setPasswordError('password must contain at least:\n- 8 characters\n- One number or special character');
+            hasError = true;
         }  
-
-        if (email === '' || password === '') {
-            alert('please enter email and password');
+        
+        if (hasError) {
             return;
         }
+
         setLoading(true);
         try {
             const response = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
-            console.log('Sign up response:', response); // More detailed logging
-            
             if (response.user) {
-                alert('Account created successfully');
+                // Success
             }
         } catch (error) {
-            console.log('Sign up error:', error.code, error.message); // More detailed error logging
-            let errorMessage = 'Sign up failed';
-    
             switch (error.code) {
                 case 'auth/email-already-in-use':
-                    errorMessage = 'This email is already registered';
+                    setEmailError('this email is already registered');
                     break;
                 case 'auth/invalid-email':
-                    errorMessage = 'Invalid email address';
+                    setEmailError('invalid email address');
                     break;
                 case 'auth/weak-password':
-                    errorMessage = 'Password is too weak';
+                    setPasswordError('Password is too weak');
                     break;
                 case 'auth/network-request-failed':
-                    errorMessage = 'Network error. Please check your connection';
+                    setPasswordError('network error. please check your connection');
                     break;
                 default:
-                    errorMessage = `Sign up failed: ${error.message}`;
+                    setEmailError(error.message);
             }
-            alert(errorMessage);
         } finally {
             setLoading(false);
         }
     }
-    
+
     return (
         <Background>
-            <View style={styles.parentFrame}>
-                <Text style={styles.subtitle}>create your account</Text>
-                <View style={styles.touchableFrame}>
-                    <View style={styles.inputFrame}>
-                        <View style={styles.inputButton}>
-                            <TextInput 
-                                value={email} 
-                                style={styles.inputButtonText} 
-                                placeholder="email" 
-                                onChangeText={(text) => setEmail(text)}>
-                            </TextInput>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                <View style={styles.parentFrame}>
+                    <Text style={styles.subtitle}>create your account</Text>
+                    <View style={styles.touchableFrame}>
+                        <View style={styles.inputFrame}>
+                            <View style={styles.inputButton}>
+                                <FloatingLabelInput
+                                    label="email*" 
+                                    value={email}  
+                                    autoCapitalize="none"
+                                    onChangeText={(text) => {
+                                        setEmail(text)
+                                        setEmailError('')
+                                    }}
+                                />
+                            </View>
+                            {emailError ? (
+                                <Text style={styles.errorText}>{emailError}</Text>
+                            ) : null}
+
+                            <View style={styles.inputButton}>
+                                <View style={{ flex: 1 }}>
+                                    <FloatingLabelInput 
+                                        secureTextEntry={!showPassword} 
+                                        value={password}  
+                                        label="create your password*" 
+                                        onChangeText={(text) => {
+                                            setPassword(text)
+                                            setPasswordError('')
+                                        }}
+                                    />
+                                </View>
+                                <TouchableOpacity 
+                                    onPress={() => setShowPassword(!showPassword)}
+                                    style={styles.eyeIcon}
+                                >
+                                    {showPassword ? 
+                                        <Eye color="#686864" size={23} /> : 
+                                        <EyeOff color="#686864" size={23} />
+                                    }
+                                </TouchableOpacity>
+                            </View>
+                            {passwordError ? (
+                                <Text style={styles.errorText}>{passwordError}</Text>
+                            ) : null}
                         </View>
-                        <View style={styles.inputButton}>
-                            <TextInput 
-                                secureTextEntry={true} 
-                                value={password} 
-                                style={styles.inputButtonText} 
-                                placeholder="create your password" 
-                                onChangeText={(text) => setPassword(text)}>
-                            </TextInput>
-                        </View>
-                    </View>
-                    <View style={styles.itemFrame}>
-                        <View style={styles.buttonFrame}>
-                            <TouchableOpacity 
-                                style={[styles.button, { backgroundColor: "#61892d" } ]}
-                                onPress={signUp}
-                                disabled={loading}>
-                                <View style={styles.buttonTextFrame}>
-                                    <Text style={[styles.buttonText, { color: "#fdfaf6" }]}>{loading ? 'Creating Account...' : 'Continue'}</Text>
-                                </View>          
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.existingAccountFrame}>
-                            <Text style={[styles.existingAccountText, {color: "#535350"}]}>already have an account? </Text>
-                            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                                <Text style={[styles.existingAccountText, {color: "#61892d"}]}>log in</Text>
-                            </TouchableOpacity>
+                        <View style={styles.itemFrame}>
+                            <View style={styles.buttonFrame}>
+                                <TouchableOpacity 
+                                    style={[styles.button, { backgroundColor: "#61892d" } ]}
+                                    onPress={signUp}
+                                    disabled={loading}>
+                                    <View style={styles.buttonTextFrame}>
+                                        <Text style={[styles.buttonText, { color: "#fdfaf6" }]}>{loading ? 'Creating Account...' : 'Continue'}</Text>
+                                    </View>          
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.existingAccountFrame}>
+                                <Text style={[styles.existingAccountText, {color: "#535350"}]}>already have an account? </Text>
+                                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                                    <Text style={[styles.existingAccountText, {color: "#61892d"}]}>log in</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </Background>
     );
 }
@@ -173,7 +258,9 @@ const styles = StyleSheet.create({
         width: "100%",
         justifyContent: "center",
         paddingHorizontal: 16,
-        height: 61
+        height: 61,
+        flexDirection: 'row',
+        alignItems: 'center'
     },
     inputButtonText: {
         fontSize: 18,
@@ -185,7 +272,30 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         flex: 1,
 
-    }
+    },
+    floatingInputContainer: {
+        flex: 1,
+        height: 61,
+    },
+    inputWrapper: {
+        flex: 1,
+        position: 'relative',
+    },
+    floatingInput: {
+        flex: 1,
+        fontSize: 18,
+        color: '#151514',
+        paddingTop: 16,
+    },
+    eyeIcon: {
+        padding: 8,
+    },
+    errorText: {
+        fontSize: 14,
+        fontFamily: "Anuphan-Regular",
+        color: "#a81f10",
+        marginLeft: 8,
+    },
 })
 
 export default EmailSignUp

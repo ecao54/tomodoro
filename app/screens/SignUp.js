@@ -2,11 +2,53 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native'
 import React, { useState } from 'react'
 import Background from '../components/Background';
-import Google from '../assets/google-logo.png';
-import Apple from '../assets/apple-logo.png';
+import GoogleLogo from '../assets/google-logo.png';
+import AppleLogo from '../assets/apple-logo.png';
 import { Mail } from 'lucide-react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import { GoogleAuthProvider, signInWithCredential, OAuthProvider } from 'firebase/auth';
+import appleAuth from '@invertase/react-native-apple-authentication';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const SignUp = ({ navigation }) => {
+    const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+        clientId: '576866654863-82fti20tv656ms5qee2c69crljd0l7v5.apps.googleusercontent.com', // Get this from Google Cloud Console
+    });
+    
+    const handleGoogleSignIn = async () => {
+        try {
+            const result = await promptAsync();
+            if (result?.type === 'success') {
+                const credential = GoogleAuthProvider.credential(result.params.id_token);
+                const firebaseResult = await signInWithCredential(auth, credential);
+                console.log(firebaseResult);
+                navigation.navigate('Home');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Google sign in failed: ' + error.message);
+        }
+    };
+    
+    const handleAppleSignIn = async () => {
+        try {
+            const appleAuthRequestResponse = await appleAuth.performRequest({
+                requestedOperation: appleAuth.Operation.LOGIN,
+                requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+            });
+    
+            const { identityToken } = appleAuthRequestResponse;
+            const credential = OAuthProvider.credential('apple.com', identityToken);
+            
+            const userCredential = await signInWithCredential(auth, credential);
+            navigation.navigate('Home');
+        } catch (error) {
+            console.error(error);
+            alert('Apple sign in failed: ' + error.message);
+        }
+    };
 
     return (
         <Background>
@@ -16,17 +58,17 @@ const SignUp = ({ navigation }) => {
                     <View style={styles.buttonFrame}>
                         <TouchableOpacity 
                             style={[styles.button, {backgroundColor: "#e4e0d9"} ]}
-                            onPress={() => navigation.navigate('Login')}>
+                            onPress={handleGoogleSignIn}>
                             <View style={styles.buttonTextFrame}>
-                                <Image source={Google} style={{width: 21, height: 21 }}/>
+                                <Image source={GoogleLogo} style={{width: 21, height: 21 }}/>
                                 <Text style={[styles.buttonText, { color: "#535350" }]}>Continue with Google</Text>
                             </View>
                         </TouchableOpacity>
                         <TouchableOpacity 
                             style={[styles.button, {backgroundColor: "#e4e0d9"} ]}
-                            onPress={() => navigation.navigate('Login')}>
+                            onPress={handleAppleSignIn}>
                             <View style={styles.buttonTextFrame}>
-                                <Image source={Apple} width={21} height={21}/>
+                                <Image source={AppleLogo} width={21} height={21}/>
                                 <Text style={[styles.buttonText, { color: "#535350" }]}>Continue with Apple</Text>
                             </View>
                         </TouchableOpacity>
