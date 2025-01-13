@@ -34,3 +34,9 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Firebase
+config/firebase-service-account.json
+
+# MongoDB
+.env
