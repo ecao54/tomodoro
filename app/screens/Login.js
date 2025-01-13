@@ -4,7 +4,7 @@ import Background from '../components/Background'
 import { FIREBASE_AUTH } from '../../FirebaseConfig'
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff, ChevronLeft } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { GoogleAuthProvider, signInWithCredential, OAuthProvider } from 'firebase/auth';
