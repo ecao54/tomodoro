@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     },
     bottomContainer: {
         justifyContent: 'flex-end',
-        paddingBottom: 10,
+        paddingBottom: 45,
         gap: 153
     },
     subtitle: {

@@ -16,7 +16,7 @@ const SignUp = ({ navigation }) => {
     const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
         clientId: '576866654863-82fti20tv656ms5qee2c69crljd0l7v5.apps.googleusercontent.com', // Get this from Google Cloud Console
     });
-    
+
     const handleGoogleSignIn = async () => {
         try {
             const result = await promptAsync();
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 25,
         paddingTop: 362,
-        paddingBottom: 27, 
+        paddingBottom: 60, 
         width: '100%',
     },
     buttonFrame: {
