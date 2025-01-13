@@ -32,16 +32,28 @@ function HomeScreen(props) {
 
     // Handle play
     useEffect(() => {
+        let intervalId;
         if (isRunning) {
-            BackgroundTimer.runBackgroundTimer(() => {
-                setTimeRemaining((prevTime) => Math.max(prevTime - 1, 0));
-            }, 1000);
+          intervalId = BackgroundTimer.setInterval(() => {
+            setTimeRemaining((prevTime) => {
+              const newTime = Math.max(prevTime - 1, 0);
+              if (newTime === 0) {
+                BackgroundTimer.clearInterval(intervalId);
+                handleModeSwitch();
+              }
+              return newTime;
+            });
+          }, 1000);
         } else {
-            BackgroundTimer.stopBackgroundTimer();
+          BackgroundTimer.clearInterval(intervalId);
         }
-    
-        return () => BackgroundTimer.stopBackgroundTimer();
-    }, [isRunning]);
+      
+        return () => {
+          if (intervalId) {
+            BackgroundTimer.clearInterval(intervalId);
+          }
+        };
+      }, [isRunning]);
     
 
     useEffect(() => {
@@ -56,33 +68,38 @@ function HomeScreen(props) {
         setTimeRemaining(POMODORO);
         setCycleCount(0);
         setIsRunning(false);
+        BackgroundTimer.stop();
     };
 
     const handleModeSwitch = () => {
+        BackgroundTimer.stop();
         if (mode === 'pomodoro') {
-            if (cycleCount < 3) {
-                setMode('short break');
-                setTimeRemaining(SHORT_BREAK);
-                setCycleCount(cycleCount + 1);
-            } else {
-                setMode('long break');
-                setTimeRemaining(LONG_BREAK);
-                setCycleCount(0);
-            }
+          if (cycleCount < 3) {
+            setMode('short break');
+            setTimeRemaining(SHORT_BREAK);
+            setCycleCount(cycleCount + 1);
+          } else {
+            setMode('long break');
+            setTimeRemaining(LONG_BREAK);
+            setCycleCount(0);
+          }
         } else {
-            setMode('pomodoro');
-            setTimeRemaining(POMODORO);
+          setMode('pomodoro');
+          setTimeRemaining(POMODORO);
         }
         setIsRunning(false);
     };
-
+      
     const handlePlay = () => {
         if (!isRunning) {
-            setIsRunning(true);
+          setIsRunning(true);
+          BackgroundTimer.start();
         } else {
-            handleRestart();
+          handleRestart();
+          BackgroundTimer.stop();
         }
-    }
+    };
+      
 
     // Not yet in use
     const handleDisruption = () => {
