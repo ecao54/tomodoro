@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "your-scheme",
     "name": "tomodoro",
     "slug": "tomodoro",
     "version": "1.0.0",
@@ -13,12 +14,14 @@
       "backgroundColor": "#FDFAF6"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "your.bundle.identifier"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./app/assets/adaptive-icon.png",
-        "backgroundColor": "#FDFAF6"
+        "backgroundColor": "#FDFAF6",
+        "googleServicesFile": "./google-services.json"
       }
     },
     "web": {
