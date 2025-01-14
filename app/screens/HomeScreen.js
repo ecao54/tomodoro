@@ -3,6 +3,8 @@ import { ImageBackground, StyleSheet, View, Text, Pressable } from 'react-native
 import ButtonBar from '../components/ButtonBar';
 import { Play, RotateCcw } from 'lucide-react-native';
 import { TouchableWithoutFeedback } from 'react-native-web';
+import { FIREBASE_AUTH } from '../../FirebaseConfig';
+import { API_URL } from '../config/api';
 
 function HomeScreen(props) {
     const { timerValues = {
@@ -27,6 +29,51 @@ function HomeScreen(props) {
         if (cycleCount === 2) return require('../assets/tomato-2.png');
         if (cycleCount === 3) return require('../assets/tomato-3.png');
         if (cycleCount === 0 && mode === 'long break') return require('../assets/tomato-4.png');
+    };
+
+    const updateStats = async (sessionType) => {
+        try {
+            const user = FIREBASE_AUTH.currentUser;
+            if (!user) {
+                console.log('No user logged in');
+                return;
+            }
+    
+            const token = await user.getIdToken();
+            console.log('Making request to:', `${API_URL}/stats/update`);
+
+            const response = await fetch(`${API_URL}/stats/update`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    userId: user.uid,
+                    sessionType: sessionType,
+                    duration: parseInt(timerValues.pomodoro),
+                    settings: {
+                        pomodoro: timerValues.pomodoro,
+                        shortBreak: timerValues.shortBreak,
+                        longBreak: timerValues.longBreak
+                    }
+                })
+            });
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
+            const data = await response.json();
+            console.log('Stats updated successfully:', data);
+        } catch (error) {
+            console.error('Error updating stats:', {
+                message: error.message,
+                stack: error.stack,
+                url: `${API_URL}/stats/update`
+            });
+        }
     };
 
     // Handle play
@@ -65,11 +112,13 @@ function HomeScreen(props) {
 
     const handleModeSwitch = () => {
         if (mode === 'pomodoro') {
+            updateStats('tomato');
             if (cycleCount < 3) {
                 setMode('short break');
                 setTimeRemaining(SHORT_BREAK);
                 setCycleCount(cycleCount + 1);
             } else {
+                updateStats('plant');
                 setMode('long break');
                 setTimeRemaining(LONG_BREAK);
                 setCycleCount(0);

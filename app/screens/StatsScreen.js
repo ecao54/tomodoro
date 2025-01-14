@@ -1,15 +1,20 @@
-import { Text, StyleSheet, View, TouchableOpacity, Touchable } from 'react-native';
-import React, { useState } from 'react';
+import { Text, StyleSheet, View, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import ButtonBar from '../components/ButtonBar';
 import Background from '../components/Background';
 import { ChevronDown } from 'lucide-react-native';
+import { FIREBASE_AUTH } from '../../FirebaseConfig';
+import { onAuthStateChanged } from 'firebase/auth';
+import { API_URL } from '../config/api';
 
-function StatsScreen(props) {
-    const handlePress = () => {
-        // Add your press handling logic here
-        console.log('button pressed');
-    };
-
+function StatsScreen() {
+    const [stats, setStats] = useState({
+        tomatoes: 0,
+        plants: 0,
+        totalMinutes: 0,
+        streak: 0
+    });
+    const [loading, setLoading] = useState(true);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const [selectedTimeFrame, setSelectedTimeFrame] = useState('all time');
 
@@ -20,6 +25,54 @@ function StatsScreen(props) {
         'past year',
         'all time'
     ];
+
+    const fetchStats = async (timeFrame) => {
+        try {
+            const user = FIREBASE_AUTH.currentUser;
+            if (!user) {
+                console.log('No user logged in');
+                return;
+            }
+    
+            const token = await user.getIdToken();
+            const url = `${API_URL}/stats/period?userId=${user.uid}&period=${timeFrame}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
+            const data = await response.json();
+            setStats(data);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (user) => {
+            if (user && isMounted) {
+                fetchStats(selectedTimeFrame);
+            }
+        });
+
+        return () => {
+            isMounted = false;
+            unsubscribe();
+        };
+    }, [selectedTimeFrame]);
 
     return (
         <Background>
@@ -59,21 +112,24 @@ function StatsScreen(props) {
                         <View style={styles.statRow}>
                             <View style={styles.statBox}>
                                 <Text style={styles.statLabel}>tomatoes grown</Text>
-                                <Text style={styles.statNum}>9</Text>
+                                <Text style={styles.statNum}>{loading ? '...' : stats.tomatoes}</Text>
                             </View>
                             <View style={styles.statBox}>
                                 <Text style={styles.statLabel}>plants grown</Text>
-                                <Text style={styles.statNum}>2</Text>
+                                <Text style={styles.statNum}>{loading ? '...' : stats.plants}</Text>
                             </View>
                         </View>
                         <View style={styles.statRow}>
                             <View style={styles.statBox}>
                                 <Text style={styles.statLabel}>longest daily streak</Text>
-                                <Text style={styles.statNum}>3</Text>
+                                <Text style={styles.statNum}>{loading ? '...' : stats.streak}</Text>
                             </View>
                             <View style={styles.statBox}>
                                 <Text style={styles.statLabel}>total duration</Text>
-                                <Text style={styles.statNum}>5h 20m</Text>
+                                <Text style={styles.statNum}>
+                                    {loading ? '...' : 
+                                        `${Math.floor(stats.totalMinutes / 60)}h ${stats.totalMinutes % 60}m`}
+                                </Text>
                             </View>
                         </View>
                     </View>
@@ -117,7 +173,7 @@ const styles = StyleSheet.create({
     },
     timeFont: {
         fontSize: 14,
-        fontWeight: 600,
+        fontWeight: '600',
         color: "#535350"
     },
     dropdownContainer: {
@@ -190,6 +246,6 @@ const styles = StyleSheet.create({
         fontFamily: "Anuphan-Medium",
         color: "#151514",
     }
-})
+});
 
 export default StatsScreen;
