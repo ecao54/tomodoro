@@ -163,6 +163,15 @@ const Login = () => {
         <Background>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <View style={styles.parentFrame}>
+                    <TouchableOpacity 
+                        onPress={() => navigation.navigate("Welcome")}
+                        style={styles.backButton}
+                    >
+                        <ChevronLeft 
+                            size={30} 
+                            color="#535350"
+                        />
+                    </TouchableOpacity>
                     <View style={styles.headerContainer}>
                         <Text style={styles.subtitle}>log in to your account</Text>
                     </View>
@@ -376,6 +385,12 @@ const styles = StyleSheet.create({
         fontFamily: "Anuphan-Regular",
         color: "#a81f10",
         marginLeft: 8,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 25, 
+        zIndex: 1
     },
 });
 

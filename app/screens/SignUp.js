@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Background from '../components/Background';
 import GoogleLogo from '../assets/google-logo.png';
 import AppleLogo from '../assets/apple-logo.png';
-import { Mail } from 'lucide-react-native';
+import { Mail, ChevronLeft } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { GoogleAuthProvider, signInWithCredential, OAuthProvider } from 'firebase/auth';
@@ -53,6 +53,15 @@ const SignUp = ({ navigation }) => {
     return (
         <Background>
             <View style={styles.parentFrame}>
+                <TouchableOpacity 
+                    onPress={() => navigation.navigate("Welcome")}
+                    style={styles.backButton}
+                >
+                    <ChevronLeft 
+                        size={30} 
+                        color="#535350"
+                    />
+                </TouchableOpacity>
                 <Text style={styles.subtitle}>create your account</Text>
                 <View style={styles.itemFrame}>
                     <View style={styles.buttonFrame}>
@@ -143,6 +152,12 @@ const styles = StyleSheet.create({
     },
     itemFrame: {
         gap: 24,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 25, 
+        zIndex: 1
     },
 })
 
