@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { FIREBASE_AUTH } from '../../FirebaseConfig'
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import Background from '../components/Background';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff, ChevronLeft } from 'lucide-react-native';
 
 const FloatingLabelInput = ({ label, value, onChangeText, secureTextEntry, ...props }) => {
     const [animation] = useState(new Animated.Value(value ? 1 : 0));
@@ -130,6 +130,15 @@ const EmailSignUp = ({ navigation }) => {
         <Background>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <View style={styles.parentFrame}>
+                    <TouchableOpacity 
+                        onPress={() => navigation.navigate("SignUp")}
+                        style={styles.backButton}
+                    >
+                        <ChevronLeft 
+                            size={30} 
+                            color="#535350"
+                        />
+                    </TouchableOpacity>
                     <Text style={styles.subtitle}>create your account</Text>
                     <View style={styles.touchableFrame}>
                         <View style={styles.inputFrame}>
@@ -295,6 +304,12 @@ const styles = StyleSheet.create({
         fontFamily: "Anuphan-Regular",
         color: "#a81f10",
         marginLeft: 8,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 25, 
+        zIndex: 1
     },
 })
 
