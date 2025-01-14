@@ -143,3 +143,93 @@ exports.getPostById = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.likePost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { userId } = req.body;
+
+        const post = await Post.findById(postId);
+        const alreadyLiked = post.social.likes.some(like => 
+            like.userId.toString() === userId
+        );
+
+        if (alreadyLiked) {
+            await Post.findByIdAndUpdate(postId, {
+                $pull: {
+                    'social.likes': { userId }
+                }
+            });
+        } else {
+            await Post.findByIdAndUpdate(postId, {
+                $push: {
+                    'social.likes': { userId }
+                }
+            });
+        }
+
+        const updatedPost = await Post.findById(postId);
+        res.json(updatedPost);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.sharePost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { userId, caption } = req.body;
+
+        const originalPost = await Post.findById(postId);
+        if (!originalPost) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        const sharedPost = await Post.create({
+            author: userId,
+            authorName: req.user.name,
+            isShared: true,
+            originalPost: postId,
+            content: {
+                caption: caption,
+                location: originalPost.content.location,
+                imageUrl: originalPost.content.imageUrl
+            },
+            studySession: originalPost.studySession
+        });
+
+        await Post.findByIdAndUpdate(postId, {
+            $push: {
+                'social.shares': {
+                    userId,
+                    sharedPostId: sharedPost._id
+                }
+            }
+        });
+
+        res.json(sharedPost);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.addComment = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { userId, userName, text } = req.body;
+
+        const post = await Post.findByIdAndUpdate(
+            postId,
+            {
+                $push: {
+                    'social.comments': { userId, userName, text }
+                }
+            },
+            { new: true }
+        );
+        res.json(post);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
