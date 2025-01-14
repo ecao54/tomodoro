@@ -1,26 +1,20 @@
+// server/middleware/auth.js
 const admin = require('firebase-admin');
 
 const authMiddleware = async (req, res, next) => {
     try {
-        // Check if Authorization header exists
-        const token = req.headers.authorization?.split('Bearer ')[1];
-        
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ error: 'No authorization header' });
         }
 
-        // Verify the token
+        const token = authHeader.split('Bearer ')[1];
         const decodedToken = await admin.auth().verifyIdToken(token);
-        
-        if (!decodedToken) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-
-        // Add user info to request
         req.user = decodedToken;
         next();
     } catch (error) {
-        return res.status(401).json({ error: 'Authentication failed' });
+        console.error('Auth middleware error:', error);
+        res.status(401).json({ error: 'Unauthorized' });
     }
 };
 
