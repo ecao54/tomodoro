@@ -5,6 +5,16 @@ import { Play, RotateCcw } from 'lucide-react-native';
 import { TouchableWithoutFeedback } from 'react-native-web';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
 import { API_URL } from '../config/api';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
+});
 
 function HomeScreen(props) {
     const { timerValues = {
@@ -76,6 +86,34 @@ function HomeScreen(props) {
         }
     };
 
+    const scheduleNotification = async (mode) => {
+        try {
+            let message;
+            switch(mode) {
+                case 'pomodoro':
+                    message = "Time's up! Let's take a short break";
+                    break;
+                case 'short break':
+                    message = "Break's over! Back to work";
+                    break;
+                case 'long break':
+                    message = "Long break finished! Ready to start fresh?";
+                    break;
+            }
+    
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: 'Tomodoro',
+                    body: message,
+                    sound: true,
+                },
+                trigger: null,
+            });
+        } catch (error) {
+            console.error('Error scheduling notification:', error);
+        }
+    };
+    
     // Handle play
     useEffect(() => {
         let intervalId;
@@ -103,6 +141,21 @@ function HomeScreen(props) {
         }
     }, [cycleCount, mode]); // Re-run effect when cycleCount or mode changes
 
+    useEffect(() => {
+        const requestPermissions = async () => {
+            try {
+                const { status } = await Notifications.requestPermissionsAsync();
+                if (status !== 'granted') {
+                    console.log('Notification permissions not granted');
+                }
+            } catch (error) {
+                console.error('Error requesting notification permissions:', error);
+            }
+        };
+    
+        requestPermissions();
+    }, []);
+    
     const handleRestart = () => {
         setMode('pomodoro');
         setTimeRemaining(POMODORO);
@@ -113,17 +166,20 @@ function HomeScreen(props) {
     const handleModeSwitch = () => {
         if (mode === 'pomodoro') {
             updateStats('tomato');
+            scheduleNotification('pomodoro');
             if (cycleCount < 3) {
                 setMode('short break');
                 setTimeRemaining(SHORT_BREAK);
                 setCycleCount(cycleCount + 1);
             } else {
                 updateStats('plant');
+                scheduleNotification('long break');
                 setMode('long break');
                 setTimeRemaining(LONG_BREAK);
                 setCycleCount(0);
             }
         } else {
+            scheduleNotification(mode);
             setMode('pomodoro');
             setTimeRemaining(POMODORO);
         }
