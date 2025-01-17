@@ -3,6 +3,8 @@ import Background from '../components/Background';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useState, useRef } from 'react';
+import { API_URL } from '../config/api';
+import { FIREBASE_AUTH } from '../../FirebaseConfig';
 
 const defaultValues = {
     pomodoro: '25',
@@ -33,17 +35,63 @@ function TimerDurations(props) {
         currentValues.longBreak === defaultValues.longBreak ? '' : currentValues.longBreak
     );
 
-    const handleSave = () => {
+    const updateUserSettings = async (values) => {
+        try {
+            const user = FIREBASE_AUTH.currentUser;
+            if (!user) {
+                console.log('No user found');
+                return;
+            }            
+    
+            const token = await user.getIdToken();
+            console.log('Request payload:', {
+                settings: {
+                    timerValues: values
+                }
+            });
+            
+            const response = await fetch(`${API_URL}/users/${user.uid}/settings`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    settings: {
+                        timerValues: values
+                    }
+                })
+            });
+    
+            console.log('Response status:', response.status);
+            const responseData = await response.json();
+            console.log('Response data:', responseData);
+    
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Failed to update timer settings');
+            }
+    
+            return responseData;
+        } catch (error) {
+            console.error('Error details:', error);
+            alert(error.message);
+        }
+    };
+
+    const handleSave = async () => {
         const newValues = {
             pomodoro: pomodoroTime || defaultValues.pomodoro,
             shortBreak: shortBreakTime || defaultValues.shortBreak,
             longBreak: longBreakTime || defaultValues.longBreak
         };
+
+        await updateUserSettings(newValues);
         onSave(newValues);
         navigation.goBack();
     };
 
-    const handleReset = () => {
+    const handleReset = async () => {
+        await updateUserSettings(defaultValues);
         setPomodoroTime('');
         setShortBreakTime('');
         setLongBreakTime('');
@@ -51,7 +99,6 @@ function TimerDurations(props) {
 
     const handleInputChange = (value, setter) => {
         setter(value);
-        hasChanges(true);
     };
 
     const hasChanges = () => {
@@ -70,6 +117,7 @@ function TimerDurations(props) {
         return isPomodoroDifferent || isShortBreakDifferent || isLongBreakDifferent;
     };
     
+
     
     
     return (
@@ -116,7 +164,7 @@ function TimerDurations(props) {
                                         ref={shortBreakRef}
                                         style={[styles.pomodoroText, {color: "#151514"}]}
                                         value={shortBreakTime}
-                                        onChangeText={setShortBreakTime}
+                                        onChangeText={(value) => handleInputChange(value, setShortBreakTime)}
                                         keyboardType="number-pad"
                                         maxLength={2}
                                         placeholder={defaultValues.shortBreak}
@@ -134,7 +182,7 @@ function TimerDurations(props) {
                                         ref={longBreakRef}
                                         style={[styles.pomodoroText, {color: "#151514"}]}
                                         value={longBreakTime}
-                                        onChangeText={setLongBreakTime}
+                                        onChangeText={(value) => handleInputChange(value, setLongBreakTime)}
                                         keyboardType="number-pad"
                                         maxLength={2}
                                         placeholder={defaultValues.longBreak}
