@@ -5,6 +5,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useState, useRef } from 'react';
 import { API_URL } from '../config/api';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
+import { useTimer } from '../context/TimerContext';
 
 const defaultValues = {
     pomodoro: '25',
@@ -15,6 +16,7 @@ const defaultValues = {
 function TimerDurations(props) {
     const navigation = useNavigation();
     const route = useRoute();
+    const { updateTimerValues } = useTimer();
     
     const { currentValues, onSave } = route.params || {
         currentValues: defaultValues,
@@ -38,18 +40,9 @@ function TimerDurations(props) {
     const updateUserSettings = async (values) => {
         try {
             const user = FIREBASE_AUTH.currentUser;
-            if (!user) {
-                console.log('No user found');
-                return;
-            }            
+            if (!user) return;
     
             const token = await user.getIdToken();
-            console.log('Request payload:', {
-                settings: {
-                    timerValues: values
-                }
-            });
-            
             const response = await fetch(`${API_URL}/users/${user.uid}/settings`, {
                 method: 'PUT',
                 headers: {
@@ -63,35 +56,42 @@ function TimerDurations(props) {
                 })
             });
     
-            console.log('Response status:', response.status);
-            const responseData = await response.json();
-            console.log('Response data:', responseData);
-    
             if (!response.ok) {
+                const responseData = await response.json();    
                 throw new Error(responseData.error || 'Failed to update timer settings');
             }
     
-            return responseData;
+            return await response.json();
         } catch (error) {
-            console.error('Error details:', error);
-            alert(error.message);
+            console.error('Error updating settings:', error);
+            throw error;
         }
     };
 
     const handleSave = async () => {
-        const newValues = {
-            pomodoro: pomodoroTime || defaultValues.pomodoro,
-            shortBreak: shortBreakTime || defaultValues.shortBreak,
-            longBreak: longBreakTime || defaultValues.longBreak
-        };
+        try {
+            const newValues = {
+                pomodoro: pomodoroTime || defaultValues.pomodoro,
+                shortBreak: shortBreakTime || defaultValues.shortBreak,
+                longBreak: longBreakTime || defaultValues.longBreak
+            };
 
-        await updateUserSettings(newValues);
-        onSave(newValues);
-        navigation.goBack();
+            await updateUserSettings(newValues);
+            if (updateTimerValues) {
+                updateTimerValues(newValues);
+            }
+            if (onSave) {
+                onSave(newValues);
+            }
+            navigation.goBack();
+        } catch (error) {
+            console.error('Save error:', error);
+        }
     };
 
     const handleReset = async () => {
         await updateUserSettings(defaultValues);
+        updateTimerValues(defaultValues);
         setPomodoroTime('');
         setShortBreakTime('');
         setLongBreakTime('');
