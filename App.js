@@ -14,6 +14,7 @@ import Login from './app/screens/Login';
 import EmailSignUp from './app/screens/EmailSignUp';
 import { onAuthStateChanged } from 'firebase/auth';
 import { FIREBASE_AUTH } from './FirebaseConfig';
+import { TimerProvider } from './app/context/TimerContext';
 
 const Stack = createNativeStackNavigator()
 
@@ -58,66 +59,69 @@ export default function App() {
   }, []);
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator 
-        screenOptions={{ animation: 'none' }}
-        initialRouteName='Welcome'
-      >
-        {!user ? (
-          <>
-            <Stack.Screen 
-              name='Welcome' 
-              component={WelcomeScreen} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name='Login' 
-              component={Login} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name='SignUp' 
-              component={SignUp} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name='EmailSignUp' 
-              component={EmailSignUp} 
-              options={{ headerShown: false }} 
-            />
-          </>
-        ) : (
-          <>
-            <Stack.Screen 
-              name="Home" 
-              options={{ headerShown: false }}>
-              {props => <HomeScreen {...props}
-              timerValues={timerValues} />}
-            </Stack.Screen> 
-            <Stack.Screen 
-              name="Friends" 
-              component={FriendsScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen 
-              name="Stats" 
-              component={StatsScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen 
-              name="Settings" 
-              options={{ headerShown: false }}>
-              {props => <SettingsScreen {...props} timerValues={timerValues} 
-              onUpdate={handleTimerUpdate} />}
-            </Stack.Screen>
-            <Stack.Screen 
-              name="TimerDurations" 
-              component={TimerDurations}
-              options={{ headerShown: false }}
-            />
-          </>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <TimerProvider>
+
+      <NavigationContainer>
+        <Stack.Navigator 
+          screenOptions={{ animation: 'none' }}
+          initialRouteName='Welcome'
+        >
+          {!user ? (
+            <>
+              <Stack.Screen 
+                name='Welcome' 
+                component={WelcomeScreen} 
+                options={{ headerShown: false }} 
+              />
+              <Stack.Screen 
+                name='Login' 
+                component={Login} 
+                options={{ headerShown: false }} 
+              />
+              <Stack.Screen 
+                name='SignUp' 
+                component={SignUp} 
+                options={{ headerShown: false }} 
+              />
+              <Stack.Screen 
+                name='EmailSignUp' 
+                component={EmailSignUp} 
+                options={{ headerShown: false }} 
+              />
+            </>
+          ) : (
+            <>
+              <Stack.Screen 
+                name="Home" 
+                options={{ headerShown: false }}>
+                {props => <HomeScreen {...props}
+                timerValues={timerValues} />}
+              </Stack.Screen> 
+              <Stack.Screen 
+                name="Friends" 
+                component={FriendsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="Stats" 
+                component={StatsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="Settings" 
+                options={{ headerShown: false }}>
+                {props => <SettingsScreen {...props} timerValues={timerValues} 
+                onUpdate={handleTimerUpdate} />}
+              </Stack.Screen>
+              <Stack.Screen 
+                name="TimerDurations" 
+                component={TimerDurations}
+                options={{ headerShown: false }}
+              />
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </TimerProvider>
   );
 }
