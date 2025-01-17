@@ -20,12 +20,12 @@ exports.updateUserSettings = async (req, res) => {
         const { userId } = req.params;
         const { settings } = req.body;
 
-        const user = await User.findByIdAndUpdate(
-            userId,
+        const user = await User.findOneAndUpdate(
+            { firebaseUID: userId },
             { 
                 'settings.timerValues': settings 
             },
-            { new: true }
+            { new: true, upsert: true }
         );
 
         if (!user) {
@@ -34,6 +34,7 @@ exports.updateUserSettings = async (req, res) => {
 
         res.json(user);
     } catch (error) {
+        console.log('Error updating user:', error);
         res.status(500).json({ error: error.message });
     }
 };
