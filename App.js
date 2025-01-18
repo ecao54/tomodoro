@@ -60,7 +60,6 @@ export default function App() {
 
   return (
     <TimerProvider>
-
       <NavigationContainer>
         <Stack.Navigator 
           screenOptions={{ animation: 'none' }}
