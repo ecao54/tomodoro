@@ -42,6 +42,8 @@ function TimerDurations(props) {
             const user = FIREBASE_AUTH.currentUser;
             if (!user) return;
     
+            console.log('Saving values to DB:', values);
+        
             const token = await user.getIdToken();
             const response = await fetch(`${API_URL}/users/${user.uid}/settings`, {
                 method: 'PUT',
@@ -56,14 +58,16 @@ function TimerDurations(props) {
                 })
             });
     
+            const savedData = await response.json();
+            console.log('Saved settings response:', savedData);
+            
             if (!response.ok) {
-                const responseData = await response.json();    
-                throw new Error(responseData.error || 'Failed to update timer settings');
+                throw new Error(`Failed to save: ${response.status}`);
             }
     
-            return await response.json();
+            return savedData;
         } catch (error) {
-            console.error('Error updating settings:', error);
+            console.error('Error saving settings:', error);
             throw error;
         }
     };

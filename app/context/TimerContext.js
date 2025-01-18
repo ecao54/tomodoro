@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
+import { FIREBASE_AUTH } from '../../FirebaseConfig';
+import { API_URL } from '../config/api';
 
 const TimerContext = createContext();
 
@@ -14,17 +16,79 @@ Notifications.setNotificationHandler({
 export function TimerProvider({ children }) {
   const [cycleCount, setCycleCount] = useState(0);
   const [mode, setMode] = useState('pomodoro');
-  const [timeRemaining, setTimeRemaining] = useState(25 * 60);
+  const [timeRemaining, setTimeRemaining] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [timerValues, setTimerValues] = useState({
-    pomodoro: '25',
-    shortBreak: '5',
-    longBreak: '15'
+    pomodoro: '0',
+    shortBreak: '0',
+    longBreak: '0'
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
-  const POMODORO = parseInt(timerValues.pomodoro) * 60; // 25 minutes in seconds
-  const SHORT_BREAK = parseInt(timerValues.shortBreak) * 60; // 5 minutes in seconds
-  const LONG_BREAK = parseInt(timerValues.longBreak) * 60; // 15 minutes in seconds
+  const convertToSeconds = (minutes) => { 
+    return parseInt(minutes) * 60;
+  }
+
+  useEffect(() => {
+    const unsubscribe = FIREBASE_AUTH.onAuthStateChanged(async (user) => {
+      if (user) {
+        await fetchUserSettings(user);
+      } else {
+        // No user - use defaults
+        console.log("no user, using defaults");
+        const defaultPomodoro = parseInt(timerValues.pomodoro) * 60;
+        setTimeRemaining(defaultPomodoro);
+        setSettingsLoaded(true);
+        setIsLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []); // Empty dependency array for initial load only
+
+  const fetchUserSettings = async (user) => {
+    try {
+        console.log('Fetching user settings...');
+        const token = await user.getIdToken();
+        console.log('Got token, making API request...');
+        
+        const url = `${API_URL}/users/${user.uid}/settings`;
+        console.log('Request URL:', url);
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Raw response data:', data);
+            
+            if (data.settings?.timerValues) {
+                const newValues = data.settings.timerValues;
+                setTimerValues(newValues);
+                const newPomodoro = parseInt(newValues.pomodoro) * 60;
+                setTimeRemaining(newPomodoro);
+                console.log('Updated time remaining:', newPomodoro);
+            } else {
+                console.log('No timer values in response');
+            }
+        } else {
+            console.error('Response not OK:', await response.text());
+        }
+    } catch (error) {
+        console.error('Error in fetchUserSettings:', error);
+        console.error('Error stack:', error.stack);
+    } finally {
+        setSettingsLoaded(true);
+        setIsLoading(false);
+    }
+};
 
   // Move timer logic here
   useEffect(() => {
@@ -68,19 +132,19 @@ export function TimerProvider({ children }) {
         scheduleNotification('pomodoro');
         if (cycleCount < 3) {
             setMode('short break');
-            setTimeRemaining(SHORT_BREAK);
+            setTimeRemaining(convertToSeconds(timerValues.shortBreak));
             setCycleCount(cycleCount + 1);
         } else {
             updateStats('plant');
             scheduleNotification('long break');
             setMode('long break');
-            setTimeRemaining(LONG_BREAK);
+            setTimeRemaining(convertToSeconds(timerValues.longBreak));
             setCycleCount(0);
         }
     } else {
         scheduleNotification(mode);
         setMode('pomodoro');
-        setTimeRemaining(POMODORO);
+        setTimeRemaining(convertToSeconds(timerValues.pomodoro));
     }
     setIsRunning(false);
   };
@@ -95,7 +159,7 @@ export function TimerProvider({ children }) {
 
   const handleRestart = () => {
     setMode('pomodoro');
-    setTimeRemaining(POMODORO);
+    setTimeRemaining(convertToSeconds(timerValues.pomodoro));
     setCycleCount(0);
     setIsRunning(false);
   };
@@ -215,6 +279,8 @@ export function TimerProvider({ children }) {
       timeRemaining,
       isRunning,
       timerValues,
+      isLoading,
+      settingsLoaded,
       handlePlay,
       handleRestart,
       handleModeSwitch,
