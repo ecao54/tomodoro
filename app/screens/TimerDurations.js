@@ -3,6 +3,9 @@ import Background from '../components/Background';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useState, useRef } from 'react';
+import { API_URL } from '../config/api';
+import { FIREBASE_AUTH } from '../../FirebaseConfig';
+import { useTimer } from '../context/TimerContext';
 
 const defaultValues = {
     pomodoro: '25',
@@ -13,6 +16,7 @@ const defaultValues = {
 function TimerDurations(props) {
     const navigation = useNavigation();
     const route = useRoute();
+    const { updateTimerValues } = useTimer();
     
     const { currentValues, onSave } = route.params || {
         currentValues: defaultValues,
@@ -33,17 +37,65 @@ function TimerDurations(props) {
         currentValues.longBreak === defaultValues.longBreak ? '' : currentValues.longBreak
     );
 
-    const handleSave = () => {
-        const newValues = {
-            pomodoro: pomodoroTime || defaultValues.pomodoro,
-            shortBreak: shortBreakTime || defaultValues.shortBreak,
-            longBreak: longBreakTime || defaultValues.longBreak
-        };
-        onSave(newValues);
-        navigation.goBack();
+    const updateUserSettings = async (values) => {
+        try {
+            const user = FIREBASE_AUTH.currentUser;
+            if (!user) return;
+    
+            console.log('Saving values to DB:', values);
+        
+            const token = await user.getIdToken();
+            const response = await fetch(`${API_URL}/users/${user.uid}/settings`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    settings: {
+                        timerValues: values
+                    }
+                })
+            });
+    
+            const savedData = await response.json();
+            console.log('Saved settings response:', savedData);
+            
+            if (!response.ok) {
+                throw new Error(`Failed to save: ${response.status}`);
+            }
+    
+            return savedData;
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            throw error;
+        }
     };
 
-    const handleReset = () => {
+    const handleSave = async () => {
+        try {
+            const newValues = {
+                pomodoro: pomodoroTime || defaultValues.pomodoro,
+                shortBreak: shortBreakTime || defaultValues.shortBreak,
+                longBreak: longBreakTime || defaultValues.longBreak
+            };
+
+            await updateUserSettings(newValues);
+            if (updateTimerValues) {
+                updateTimerValues(newValues);
+            }
+            if (onSave) {
+                onSave(newValues);
+            }
+            navigation.goBack();
+        } catch (error) {
+            console.error('Save error:', error);
+        }
+    };
+
+    const handleReset = async () => {
+        await updateUserSettings(defaultValues);
+        updateTimerValues(defaultValues);
         setPomodoroTime('');
         setShortBreakTime('');
         setLongBreakTime('');
@@ -51,7 +103,6 @@ function TimerDurations(props) {
 
     const handleInputChange = (value, setter) => {
         setter(value);
-        hasChanges(true);
     };
 
     const hasChanges = () => {
@@ -70,6 +121,7 @@ function TimerDurations(props) {
         return isPomodoroDifferent || isShortBreakDifferent || isLongBreakDifferent;
     };
     
+
     
     
     return (
@@ -116,7 +168,7 @@ function TimerDurations(props) {
                                         ref={shortBreakRef}
                                         style={[styles.pomodoroText, {color: "#151514"}]}
                                         value={shortBreakTime}
-                                        onChangeText={setShortBreakTime}
+                                        onChangeText={(value) => handleInputChange(value, setShortBreakTime)}
                                         keyboardType="number-pad"
                                         maxLength={2}
                                         placeholder={defaultValues.shortBreak}
@@ -134,7 +186,7 @@ function TimerDurations(props) {
                                         ref={longBreakRef}
                                         style={[styles.pomodoroText, {color: "#151514"}]}
                                         value={longBreakTime}
-                                        onChangeText={setLongBreakTime}
+                                        onChangeText={(value) => handleInputChange(value, setLongBreakTime)}
                                         keyboardType="number-pad"
                                         maxLength={2}
                                         placeholder={defaultValues.longBreak}

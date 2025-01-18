@@ -5,6 +5,9 @@ const userController = require('../controllers/userController');
 // Get user profile
 router.get('/:userId', userController.getUserProfile);
 
+// Get user timer settings
+router.get('/:userId/settings', userController.getUserSettings);
+
 // Update user timer settings
 router.put('/:userId/settings', userController.updateUserSettings);
 
