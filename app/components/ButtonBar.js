@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
-import { Timer, Users, ChartColumn, Settings } from 'lucide-react-native';
+import { Timer, Users, ChartColumn, Settings, BookOpen } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 function ButtonBar() {
@@ -19,6 +19,12 @@ function ButtonBar() {
                 style={[styles.button, route.name === 'Friends' && styles.activeButton]}
                 onPress={() => navigation.navigate('Friends')}>
                 <Users color="#FBFBF2" size={30} />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+                style={[styles.button, route.name === 'Posts' && styles.activeButton]}
+                onPress={() => navigation.navigate('Posts')}>
+                <BookOpen color="#FBFBF2" size={30} />
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -48,7 +54,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#686864', 
         borderRadius: 15,
         flexDirection: 'row',
-        gap: 25,
+        gap: 10,
         justifyContent: 'center',
         bottom: 36
     },
