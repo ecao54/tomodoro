@@ -12,6 +12,7 @@ import WelcomeScreen from './app/screens/WelcomeScreen';
 import SignUp from './app/screens/SignUp';
 import Login from './app/screens/Login';
 import EmailSignUp from './app/screens/EmailSignUp';
+import Posts from './app/screens/PostsScreen';
 import { onAuthStateChanged } from 'firebase/auth';
 import { FIREBASE_AUTH } from './FirebaseConfig';
 import { TimerProvider } from './app/context/TimerContext';
@@ -99,6 +100,11 @@ export default function App() {
               <Stack.Screen 
                 name="Friends" 
                 component={FriendsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="Posts" 
+                component={Posts}
                 options={{ headerShown: false }}
               />
               <Stack.Screen 
