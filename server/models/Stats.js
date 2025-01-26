@@ -39,6 +39,10 @@ const statsSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    currentStreak: { 
+        type: Number, 
+        default: 0 
+    },
     lastStudyDate: {
         type: Date,
         default: Date.now
