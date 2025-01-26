@@ -21,7 +21,7 @@ const Dialog = ({ visible, onConfirm, onCancel }) => {
               style={[styles.button, styles.buttonFlexBox]}
               onPress={onConfirm}
             >
-              <Text style={[styles.saveAndRestart, styles.cancelTypo]}>
+              <Text style={[styles.saveAndRestart, styles.options]}>
                 save and restart
               </Text>
             </TouchableOpacity>
@@ -29,7 +29,7 @@ const Dialog = ({ visible, onConfirm, onCancel }) => {
               style={[styles.button1, styles.buttonFlexBox]}
               onPress={onCancel}
             >
-              <Text style={[styles.cancel, styles.cancelTypo]}>cancel</Text>
+              <Text style={[styles.cancel, styles.options]}>cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
         alignSelf: "stretch",
         alignItems: "center",
   	},
-  	cancelTypo: {
+  	options: {
     		textAlign: "left",
     		fontSize: 18,
     		fontFamily: "Anuphan-SemiBold",
