@@ -1,170 +1,50 @@
 const Stats = require('../models/Stats');
 
-// Helper function to get time ranges
-const getTimeRanges = (currentDate = new Date()) => {
-    const today = new Date(currentDate);
-    
-    return {
-        today: {
-            start: new Date(today.setHours(0, 0, 0, 0)),
-            end: new Date(today.setHours(23, 59, 59, 999))
-        },
-        past_week: {
-            start: new Date(today.setDate(today.getDate() - 7)),
-            end: currentDate
-        },
-        past_month: {
-            start: new Date(today.setDate(today.getDate() - 30)),
-            end: currentDate
-        },
-        past_six_months: {
-            start: new Date(today.setMonth(today.getMonth() - 6)),
-            end: currentDate
-        },
-        past_year: {
-            start: new Date(today.setFullYear(today.getFullYear() - 1)),
-            end: currentDate
-        },
-        all_time: {
-            start: null,
-            end: currentDate
-        }
-    };
-};
+const getTimeRanges = (period, offset = 0) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const offsetDate = new Date(today);
 
-// Update stats after completing a session
-exports.updateStats = async (req, res) => {
-    try {
-        const { 
-            userId, 
-            sessionType,    // 'tomato' or 'plant'
-            duration 
-        } = req.body;
-
-        const currentDate = new Date();
-        const timeOfDay = currentDate.toLocaleTimeString();
-
-        // Update total stats and add new session
-        const stats = await Stats.findOneAndUpdate(
-            { userId },
-            {
-                $inc: {
-                    'totalStats.tomatoes': sessionType === 'tomato' ? 1 : 0,
-                    'totalStats.plants': sessionType === 'plant' ? 1 : 0,
-                    'totalStats.totalMinutes': duration
-                },
-                $push: {
-                    sessions: {
-                        date: currentDate,
-                        type: sessionType,
-                        duration: duration,
-                        timeOfDay: timeOfDay
-                    }
-                }
-            },
-            { new: true, upsert: true }
-        );
-
-        res.json(stats);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    switch(period) {
+        case 'today':
+            offsetDate.setDate(today.getDate() + parseInt(offset));
+            return {
+                start: new Date(offsetDate.setHours(0, 0, 0, 0)),
+                end: new Date(offsetDate.setHours(23, 59, 59, 999))
+            };
+            
+        case 'week':
+            offsetDate.setDate(today.getDate() + (parseInt(offset) * 7));
+            const weekStart = new Date(offsetDate);
+            weekStart.setDate(offsetDate.getDate() - offsetDate.getDay());
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            weekEnd.setHours(23, 59, 59, 999);
+            return { start: weekStart, end: weekEnd };
+            
+        case 'month':
+            offsetDate.setMonth(today.getMonth() + parseInt(offset));
+            return {
+                start: new Date(offsetDate.getFullYear(), offsetDate.getMonth(), 1),
+                end: new Date(offsetDate.getFullYear(), offsetDate.getMonth() + 1, 0, 23, 59, 59, 999)
+            };
+            
+        case 'year':
+            offsetDate.setFullYear(today.getFullYear() + parseInt(offset));
+            return {
+                start: new Date(offsetDate.getFullYear(), 0, 1),
+                end: new Date(offsetDate.getFullYear(), 11, 31, 23, 59, 59, 999)
+            };
+            
+        case 'all time':
+        default:
+            return {
+                start: new Date(today.getFullYear() - 4, 0, 1),
+                end: now
+            };
     }
 };
 
-// Get stats for specific time period
-exports.getStats = async (req, res) => {
-    try {
-        const { userId, period } = req.query;
-        const timeRanges = getTimeRanges();
-        const timeRange = timeRanges[period];
-
-        const query = {
-            userId,
-            ...(timeRange.start && {
-                'sessions.date': {
-                    $gte: timeRange.start,
-                    $lte: timeRange.end
-                }
-            })
-        };
-
-        const stats = await Stats.findOne(query);
-        
-        if (!stats) {
-            return res.json({
-                tomatoes: 0,
-                plants: 0,
-                totalMinutes: 0,
-                sessions: []
-            });
-        }
-
-        // Calculate period-specific stats
-        const filteredSessions = stats.sessions.filter(session => 
-            !timeRange.start || (
-                session.date >= timeRange.start && 
-                session.date <= timeRange.end
-            )
-        );
-
-        const periodStats = {
-            tomatoes: filteredSessions.filter(s => s.type === 'tomato').length,
-            plants: filteredSessions.filter(s => s.type === 'plant').length,
-            totalMinutes: filteredSessions.reduce((acc, s) => acc + s.duration, 0),
-            sessions: filteredSessions
-        };
-
-        res.json(periodStats);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+module.exports = {
+    getTimeRanges
 };
-
-// Get daily breakdown for graphs
-exports.getDailyStats = async (req, res) => {
-    try {
-        const { userId, period } = req.query;
-        const timeRanges = getTimeRanges();
-        const timeRange = timeRanges[period];
-
-        const stats = await Stats.aggregate([
-            {
-                $match: {
-                    userId,
-                    ...(timeRange.start && {
-                        'sessions.date': {
-                            $gte: timeRange.start,
-                            $lte: timeRange.end
-                        }
-                    })
-                }
-            },
-            {
-                $unwind: '$sessions'
-            },
-            {
-                $group: {
-                    _id: {
-                        $dateToString: { format: '%Y-%m-%d', date: '$sessions.date' }
-                    },
-                    totalMinutes: { $sum: '$sessions.duration' },
-                    tomatoes: {
-                        $sum: { $cond: [{ $eq: ['$sessions.type', 'tomato'] }, 1, 0] }
-                    },
-                    plants: {
-                        $sum: { $cond: [{ $eq: ['$sessions.type', 'plant'] }, 1, 0] }
-                    }
-                }
-            },
-            {
-                $sort: { _id: 1 }
-            }
-        ]);
-
-        res.json(stats);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-module.exports = exports;

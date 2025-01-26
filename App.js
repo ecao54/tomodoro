@@ -16,6 +16,7 @@ import Posts from './app/screens/PostsScreen';
 import { onAuthStateChanged } from 'firebase/auth';
 import { FIREBASE_AUTH } from './FirebaseConfig';
 import { TimerProvider } from './app/context/TimerContext';
+import { useFonts } from 'expo-font';
 
 const Stack = createNativeStackNavigator()
 
@@ -36,6 +37,16 @@ export default function App() {
           console.log('Error saving values:', error);
       }
   };
+
+  const [fontsLoaded] = useFonts({
+    'Anuphan-Regular': require('./app/assets/fonts/Anuphan-Regular.ttf'),
+    'Anuphan-Medium': require('./app/assets/fonts/Anuphan-Medium.ttf'),
+    'Anuphan-SemiBold': require('./app/assets/fonts/Anuphan-SemiBold.ttf'),
+    'Anuphan-Bold': require('./app/assets/fonts/Anuphan-Bold.ttf'),
+    'Anuphan-Light': require('./app/assets/fonts/Anuphan-Light.ttf'),
+    'Anuphan-ExtraLight': require('./app/assets/fonts/Anuphan-ExtraLight.ttf'),
+    'Anuphan-Thin': require('./app/assets/fonts/Anuphan-Thin.ttf'),
+  });
 
   useEffect(() => {
     const loadInitialValues = async () => {
@@ -58,6 +69,10 @@ export default function App() {
     
     return unsubscribe;
   }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <TimerProvider>
