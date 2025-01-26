@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ButtonBar from '../components/ButtonBar';
 import Background from '../components/Background';
 import { ChevronRight } from 'lucide-react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
 import { signOut } from 'firebase/auth';
 import { API_URL } from '../config/api';
@@ -18,9 +18,11 @@ function SettingsScreen( { timerValues, onUpdate }) {
         console.log('button pressed');
     };
 
-    useEffect(() => {
-        loadSavedValues();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            loadSavedValues();
+        }, [])
+    );
     
     const loadSavedValues = async () => {
         try {

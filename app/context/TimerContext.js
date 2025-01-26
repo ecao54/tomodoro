@@ -125,7 +125,7 @@ export function TimerProvider({ children }) {
   // Add updateTimerValues function
   const updateTimerValues = (newValues) => {
     setTimerValues(newValues);
-    setIsRunning(false); // Stop timer when values change
+    handleRestart(); // stop and restart timer when values change
   };
 
   // Move all handler functions here
