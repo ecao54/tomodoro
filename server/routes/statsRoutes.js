@@ -52,8 +52,8 @@ const getTimeRanges = (period, offset = 0) => {
     }
 };
 
-const calculateCurrentStreak = (sessions) => {
-    if (!sessions.length) return 0;
+const calculateStreaks = (sessions) => {
+    if (!sessions.length) return { currentStreak: 0, longestStreak: 0 };
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -64,11 +64,12 @@ const calculateCurrentStreak = (sessions) => {
         return sessionDate >= today;
     });
     
-    if (!hasSessionToday) return 0;
+    if (!hasSessionToday) return { currentStreak: 0, longestStreak: 0 };
     
     let currentStreak = 1;
+    let longestStreak = 1;
     let checkDate = new Date(today);
-    checkDate.setDate(checkDate.getDate() - 1); // Start checking from yesterday
+    checkDate.setDate(checkDate.getDate() - 1);
     
     while (true) {
         const hasSession = sessions.some(session => {
@@ -80,10 +81,11 @@ const calculateCurrentStreak = (sessions) => {
         if (!hasSession) break;
         
         currentStreak++;
+        longestStreak = Math.max(currentStreak, longestStreak);
         checkDate.setDate(checkDate.getDate() - 1);
     }
     
-    return currentStreak;
+    return { currentStreak, longestStreak };
 };
 
 // Get stats for a period
@@ -109,8 +111,14 @@ router.get('/period', async (req, res, next) => {
             return sessionDate >= timeRange.start && sessionDate <= timeRange.end;
         });
 
-        // Calculate current streak using all sessions
-        const currentStreak = calculateCurrentStreak(stats.sessions);
+        // Calculate both streaks
+        const { currentStreak, longestStreak } = calculateStreaks(stats.sessions);
+        
+        // Update longest streak if current is longer
+        if (currentStreak > stats.streak) {
+            stats.streak = currentStreak;
+            await stats.save();
+        }
 
         res.json({
             ...stats.toObject(),
@@ -118,8 +126,8 @@ router.get('/period', async (req, res, next) => {
             tomatoes: filteredSessions.filter(s => s.type === 'tomato').length,
             plants: filteredSessions.filter(s => s.type === 'plant').length,
             totalMinutes: filteredSessions.reduce((sum, s) => sum + s.duration, 0),
-            currentStreak: currentStreak,
-            streak: stats.streak || 0
+            currentStreak,
+            streak: Math.max(currentStreak, stats.streak)
         });
     } catch (error) {
         console.error('Error:', error);
