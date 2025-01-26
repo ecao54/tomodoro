@@ -26,6 +26,39 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "fonts": [
+      {
+        "asset": "./app/assets/fonts/Anuphan-Regular.ttf",
+        "family": "Anuphan-Regular"
+      },
+      {
+        "asset": "./app/assets/fonts/Anuphan-Medium.ttf",
+        "family": "Anuphan-Medium"
+      },
+      {
+        "asset": "./app/assets/fonts/Anuphan-SemiBold.ttf",
+        "family": "Anuphan-SemiBold"
+      },
+      {
+        "asset": "./app/assets/fonts/Anuphan-Thin.ttf",
+        "family": "Anuphan-Thin"
+      },
+      {
+        "asset": "./app/assets/fonts/Anuphan-Light.ttf",
+        "family": "Anuphan-Light"
+      },
+      {
+        "asset": "./app/assets/fonts/Anuphan-ExtraLight.ttf",
+        "family": "Anuphan-ExtraLight"
+      },
+      {
+        "asset": "./app/assets/fonts/Anuphan-Bold.ttf",
+        "family": "Anuphan-Bold"
+      }
+    ],
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
