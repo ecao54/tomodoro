@@ -19,9 +19,9 @@ export function TimerProvider({ children }) {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [timerValues, setTimerValues] = useState({
-    pomodoro: '0',
-    shortBreak: '0',
-    longBreak: '0'
+    pomodoro: '25',
+    shortBreak: '5',
+    longBreak: '15'
   });
   const [isLoading, setIsLoading] = useState(true);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -35,17 +35,20 @@ export function TimerProvider({ children }) {
       if (user) {
         await fetchUserSettings(user);
       } else {
-        // No user - use defaults
-        console.log("no user, using defaults");
-        const defaultPomodoro = parseInt(timerValues.pomodoro) * 60;
-        setTimeRemaining(defaultPomodoro);
-        setSettingsLoaded(true);
-        setIsLoading(false);
+        // Reset to defaults when no user/logout
+        setTimerValues({
+          pomodoro: '25',
+          shortBreak: '5',
+          longBreak: '15'
+        });
+        setTimeRemaining(25 * 60);
       }
+      setSettingsLoaded(true);
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, []); // Empty dependency array for initial load only
+  }, []);
 
   const fetchUserSettings = async (user) => {
     try {
