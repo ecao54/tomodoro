@@ -254,26 +254,6 @@ export function TimerProvider({ children }) {
 
     requestPermissions();
   }, []);
-  
-  // Handle play
-  useEffect(() => {
-    let intervalId;
-    if (isRunning) {
-        intervalId = setInterval(() => {
-            setTimeRemaining((prevSeconds) => {
-                if (prevSeconds <= 0) {
-                    clearInterval(intervalId);
-                    handleModeSwitch();
-                    return 0;
-                } else {
-                    return prevSeconds - 1;
-                }
-            });
-        }, 1000);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [isRunning]); // Re-run effect when isRunning changes
 
   return (
     <TimerContext.Provider value={{
