@@ -8,6 +8,7 @@ import { ChevronRight } from 'lucide-react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
 import { signOut } from 'firebase/auth';
+import { API_URL } from '../config/api';
 
 function SettingsScreen( { timerValues, onUpdate }) {
     const navigation = useNavigation();
@@ -20,15 +21,27 @@ function SettingsScreen( { timerValues, onUpdate }) {
     useEffect(() => {
         loadSavedValues();
     }, []);
-
+    
     const loadSavedValues = async () => {
         try {
-            const savedValues = await AsyncStorage.getItem('timerValues');
-            if (savedValues) {
-                onUpdate(JSON.parse(savedValues));
+            const user = FIREBASE_AUTH.currentUser;
+            if (!user) return;
+    
+            const token = await user.getIdToken();
+            const response = await fetch(`${API_URL}/users/${user.uid}/settings`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+    
+            if (response.ok) {
+                const data = await response.json();
+                if (data.settings?.timerValues) {
+                    onUpdate(data.settings.timerValues);
+                }
             }
         } catch (error) {
-            console.log('Error loading saved values:', error);
+            console.error('Error loading saved values:', error);
         }
     };
 

@@ -16,7 +16,7 @@ const defaultValues = {
 function TimerDurations(props) {
     const navigation = useNavigation();
     const route = useRoute();
-    const { updateTimerValues } = useTimer();
+    const { timerValues, updateTimerValues } = useTimer();
     
     const { currentValues, onSave } = route.params || {
         currentValues: defaultValues,
