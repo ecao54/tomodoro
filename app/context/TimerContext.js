@@ -91,7 +91,25 @@ export function TimerProvider({ children }) {
         setSettingsLoaded(true);
         setIsLoading(false);
     }
-};
+  };
+
+  // Move timer logic here
+  useEffect(() => {
+    let intervalId;
+    if (isRunning) {
+      intervalId = setInterval(() => {
+        setTimeRemaining((prevSeconds) => {
+          if (prevSeconds <= 0) {
+            clearInterval(intervalId);
+            handleModeSwitch();
+            return 0;
+          }
+          return prevSeconds - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(intervalId);
+  }, [isRunning]);
 
   // Update timeRemaining when timerValues change
   useEffect(() => {
@@ -107,7 +125,7 @@ export function TimerProvider({ children }) {
   // Add updateTimerValues function
   const updateTimerValues = (newValues) => {
     setTimerValues(newValues);
-    setIsRunning(false); // Stop timer when values change
+    handleRestart(); // stop and restart timer when values change
   };
 
   // Move all handler functions here
