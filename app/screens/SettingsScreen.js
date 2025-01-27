@@ -75,9 +75,9 @@ function SettingsScreen( { timerValues, onUpdate }) {
                                 </View>
                                 <View style={styles.durationFrame}>
                                     <View style={styles.pomodoroFrame}>
-                                        <Text style={[styles.bodyText, { fontWeight: "600" }]}>pomodoro</Text>
-                                        <Text style={[styles.bodyText, { fontWeight: "600" }]}>short break</Text>
-                                        <Text style={[styles.bodyText, { fontWeight: "600" }]}>long break</Text>
+                                        <Text style={[styles.bodyText, { fontFamily: "Anuphan-SemiBold" }]}>pomodoro</Text>
+                                        <Text style={[styles.bodyText, { fontFamily: "Anuphan-SemiBold" }]}>short break</Text>
+                                        <Text style={[styles.bodyText, { fontFamily: "Anuphan-SemiBold" }]}>long break</Text>
                                     </View>
                                     <View style={styles.pomodoroFrame}>
                                         <Text style={styles.bodyText}>{timerValues.pomodoro} minutes</Text>
@@ -157,12 +157,13 @@ const styles = StyleSheet.create({
     },
     subtitles: {
         fontSize: 24,
-        fontWeight: "600",
         color: "#151514",
+        fontFamily: "Anuphan-SemiBold"
     },
     bodyText: {
         fontSize: 18,
         color: "#151514",
+        fontFamily: "Anuphan-Regular",
     },
     line: {
         borderColor: "#e4e0d9",

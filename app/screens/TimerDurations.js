@@ -310,10 +310,10 @@ const styles = StyleSheet.create({
     },
     subtitles: {
         fontSize: 24,
-        fontWeight: "600",
         color: "#151514",
         textAlign: 'center',
-        flex: 1
+        flex: 1,
+        fontFamily: "Anuphan-SemiBold"
     },
     pomodoroFrame: {
         width: '100%',
