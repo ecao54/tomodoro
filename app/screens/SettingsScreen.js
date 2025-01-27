@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ButtonBar from '../components/ButtonBar';
 import Background from '../components/Background';
 import { ChevronRight } from 'lucide-react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
 import { signOut } from 'firebase/auth';
 import { API_URL } from '../config/api';
@@ -18,9 +18,11 @@ function SettingsScreen( { timerValues, onUpdate }) {
         console.log('button pressed');
     };
 
-    useEffect(() => {
-        loadSavedValues();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            loadSavedValues();
+        }, [])
+    );
     
     const loadSavedValues = async () => {
         try {
@@ -73,9 +75,9 @@ function SettingsScreen( { timerValues, onUpdate }) {
                                 </View>
                                 <View style={styles.durationFrame}>
                                     <View style={styles.pomodoroFrame}>
-                                        <Text style={[styles.bodyText, { fontWeight: "600" }]}>pomodoro</Text>
-                                        <Text style={[styles.bodyText, { fontWeight: "600" }]}>short break</Text>
-                                        <Text style={[styles.bodyText, { fontWeight: "600" }]}>long break</Text>
+                                        <Text style={[styles.bodyText, { fontFamily: "Anuphan-SemiBold" }]}>pomodoro</Text>
+                                        <Text style={[styles.bodyText, { fontFamily: "Anuphan-SemiBold" }]}>short break</Text>
+                                        <Text style={[styles.bodyText, { fontFamily: "Anuphan-SemiBold" }]}>long break</Text>
                                     </View>
                                     <View style={styles.pomodoroFrame}>
                                         <Text style={styles.bodyText}>{timerValues.pomodoro} minutes</Text>
@@ -155,12 +157,13 @@ const styles = StyleSheet.create({
     },
     subtitles: {
         fontSize: 24,
-        fontWeight: "600",
         color: "#151514",
+        fontFamily: "Anuphan-SemiBold"
     },
     bodyText: {
         fontSize: 18,
         color: "#151514",
+        fontFamily: "Anuphan-Regular",
     },
     line: {
         borderColor: "#e4e0d9",

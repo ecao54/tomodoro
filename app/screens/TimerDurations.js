@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Platform, Text, StyleSheet, View, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, Pressable } from 'react-native';
+import { KeyboardAvoidingView, Platform, Text, StyleSheet, View, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, Pressable, Alert } from 'react-native';
 import Background from '../components/Background';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -6,6 +6,7 @@ import React, { useState, useRef } from 'react';
 import { API_URL } from '../config/api';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
 import { useTimer } from '../context/TimerContext';
+import Dialog from '../components/Dialog';
 
 const defaultValues = {
     pomodoro: '25',
@@ -16,7 +17,11 @@ const defaultValues = {
 function TimerDurations(props) {
     const navigation = useNavigation();
     const route = useRoute();
-    const { timerValues, updateTimerValues } = useTimer();
+    const { timerValues, updateTimerValues, isRunning, mode } = useTimer();
+    const [dialogVisible, setDialogVisible] = useState(false);
+    const [pendingValues, setPendingValues] = useState(null);
+    const [pendingAction, setPendingAction] = useState(null); // 'save' or 'reset'
+
     
     const { currentValues, onSave } = route.params || {
         currentValues: defaultValues,
@@ -72,28 +77,55 @@ function TimerDurations(props) {
         }
     };
 
-    const handleSave = async () => {
-        try {
-            const newValues = {
-                pomodoro: pomodoroTime || defaultValues.pomodoro,
-                shortBreak: shortBreakTime || defaultValues.shortBreak,
-                longBreak: longBreakTime || defaultValues.longBreak
-            };
-
-            await updateUserSettings(newValues);
-            if (updateTimerValues) {
-                updateTimerValues(newValues);
-            }
-            if (onSave) {
-                onSave(newValues);
-            }
-            navigation.goBack();
-        } catch (error) {
-            console.error('Save error:', error);
+    const checkActiveSession = () => {
+        if (isRunning || mode !== 'pomodoro') {
+            setDialogVisible(true);
+            return true;
         }
+        return false;
+    };
+
+    const handleSave = async () => {
+        const newValues = {
+            pomodoro: pomodoroTime || defaultValues.pomodoro,
+            shortBreak: shortBreakTime || defaultValues.shortBreak,
+            longBreak: longBreakTime || defaultValues.longBreak
+        };
+
+        if (isRunning || mode !== 'pomodoro') {
+            setPendingValues(newValues);
+            setPendingAction('save');
+            setDialogVisible(true);
+            return;
+        }
+
+        await saveValues(newValues);
     };
 
     const handleReset = async () => {
+        if (isRunning || mode !== 'pomodoro') {
+            setPendingValues(defaultValues);
+            setPendingAction('reset');
+            setDialogVisible(true);
+            return;
+        }
+
+        await resetValues();
+    };
+
+    const saveValues = async (values) => {
+        try {
+          await updateUserSettings(values);
+          if (updateTimerValues) {
+            updateTimerValues(values);
+          }
+          navigation.goBack();
+        } catch (error) {
+          console.error('Save error:', error);
+        }
+    };
+
+    const resetValues = async () => {
         await updateUserSettings(defaultValues);
         updateTimerValues(defaultValues);
         setPomodoroTime('');
@@ -106,6 +138,7 @@ function TimerDurations(props) {
     };
 
     const hasChanges = () => {
+        
         const isPomodoroDifferent = 
             !(pomodoroTime === '' && currentValues.pomodoro === defaultValues.pomodoro) && 
             pomodoroTime !== currentValues.pomodoro;
@@ -219,11 +252,41 @@ function TimerDurations(props) {
                     </View>
                 </TouchableWithoutFeedback>
             </KeyboardAvoidingView>
+            <View style={styles.dialogContainer}>
+                <Dialog 
+                    visible={dialogVisible}
+                    onConfirm={async () => {
+                        setDialogVisible(false);
+                        if (pendingValues) {
+                            if (pendingAction === 'save') {
+                                await saveValues(pendingValues);
+                            } else if (pendingAction === 'reset') {
+                                await resetValues();
+                            }
+                            setPendingValues(null);
+                            setPendingAction(null);
+                        }
+                    }}
+                    onCancel={() => {
+                        setDialogVisible(false);
+                        setPendingValues(null);
+                        setPendingAction(null);
+                    }}
+                />
+            </View>
         </Background>
     );
 }
 
 const styles = StyleSheet.create({ 
+    dialogContainer: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        // zIndex
+    },
     parentFrame: {
         flex: 1,
         paddingTop: 77,
@@ -247,10 +310,10 @@ const styles = StyleSheet.create({
     },
     subtitles: {
         fontSize: 24,
-        fontWeight: "600",
         color: "#151514",
         textAlign: 'center',
-        flex: 1
+        flex: 1,
+        fontFamily: "Anuphan-SemiBold"
     },
     pomodoroFrame: {
         width: '100%',
