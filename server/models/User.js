@@ -6,15 +6,27 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    username: {
+    email: {
         type: String,
         required: true
+    },
+    username: {
+        type: String,
+        required: false
+    },
+    firstName: {
+        type: String,
+        required: false
+    },
+    lastName: {
+        type: String,
+        required: false
     },
     settings: {
         timerValues: {
             pomodoro: { type: String, default: '25' },
             shortBreak: { type: String, default: '5' },
-            longBreak: { type: String, default: '15' }
+            longBreak: { type: String, default: '10' }
         }
     },
     createdAt: {

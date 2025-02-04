@@ -1,8 +1,8 @@
 import { KeyboardAvoidingView, Platform, Text, StyleSheet, View, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, Pressable, Alert } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';  // Add useEffect
 import Background from '../components/Background';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import React, { useState, useRef } from 'react';
 import { API_URL } from '../config/api';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
 import { useTimer } from '../context/TimerContext';
@@ -11,36 +11,40 @@ import Dialog from '../components/Dialog';
 const defaultValues = {
     pomodoro: '25',
     shortBreak: '5',
-    longBreak: '15'
+    longBreak: '10'
 };
 
 function TimerDurations(props) {
     const navigation = useNavigation();
     const route = useRoute();
-    const { timerValues, updateTimerValues, isRunning, mode } = useTimer();
+    const { timerValues = defaultValues, updateTimerValues, isRunning, mode } = useTimer();
+    const [isLoading, setIsLoading] = useState(true);
     const [dialogVisible, setDialogVisible] = useState(false);
     const [pendingValues, setPendingValues] = useState(null);
-    const [pendingAction, setPendingAction] = useState(null); // 'save' or 'reset'
-
-    
-    const { currentValues, onSave } = route.params || {
-        currentValues: defaultValues,
-        onSave: () => {}
-    };
+    const [pendingAction, setPendingAction] = useState(null);
 
     const pomodoroRef = useRef(null);
     const shortBreakRef = useRef(null);
     const longBreakRef = useRef(null);
 
+    const initialValues = timerValues || defaultValues;
+    const { currentValues = initialValues } = route.params || {};
+
     const [pomodoroTime, setPomodoroTime] = useState(
-        currentValues.pomodoro === defaultValues.pomodoro ? '' : currentValues.pomodoro
+        currentValues?.pomodoro === defaultValues.pomodoro ? '' : currentValues?.pomodoro
     );
     const [shortBreakTime, setShortBreakTime] = useState(
-        currentValues.shortBreak === defaultValues.shortBreak ? '' : currentValues.shortBreak
+        currentValues?.shortBreak === defaultValues.shortBreak ? '' : currentValues?.shortBreak
     );
     const [longBreakTime, setLongBreakTime] = useState(
-        currentValues.longBreak === defaultValues.longBreak ? '' : currentValues.longBreak
+        currentValues?.longBreak === defaultValues.longBreak ? '' : currentValues?.longBreak
     );
+
+    useEffect(() => {
+        if (timerValues) {
+            setIsLoading(false);
+        }
+    }, [timerValues]);
 
     const updateUserSettings = async (values) => {
         try {

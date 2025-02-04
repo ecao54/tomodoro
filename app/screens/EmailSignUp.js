@@ -4,6 +4,7 @@ import { FIREBASE_AUTH } from '../../FirebaseConfig'
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import Background from '../components/Background';
 import { Eye, EyeOff, ChevronLeft } from 'lucide-react-native';
+import { API_URL } from '../config/api';
 
 const FloatingLabelInput = ({ label, value, onChangeText, secureTextEntry, ...props }) => {
     const [animation] = useState(new Animated.Value(value ? 1 : 0));
@@ -102,7 +103,26 @@ const EmailSignUp = ({ navigation }) => {
         try {
             const response = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
             if (response.user) {
-                // Success
+                const token = await response.user.getIdToken();
+
+                await fetch(`${API_URL}/users/${response.user.uid}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        email,
+                        settings: {
+                            timerValues: {
+                                pomodoro: '25',
+                                shortBreak: '5',
+                                longBreak: '10'
+                            }
+                        }
+                    })
+                });
             }
         } catch (error) {
             switch (error.code) {

@@ -2,7 +2,6 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from './app/screens/HomeScreen';
 import FriendsScreen from './app/screens/FriendsScreen';
 import StatsScreen from './app/screens/StatsScreen';
@@ -13,30 +12,19 @@ import SignUp from './app/screens/SignUp';
 import Login from './app/screens/Login';
 import EmailSignUp from './app/screens/EmailSignUp';
 import Posts from './app/screens/PostsScreen';
+import InfoInput from './app/screens/InfoInput';
 import { onAuthStateChanged } from 'firebase/auth';
 import { FIREBASE_AUTH } from './FirebaseConfig';
 import { TimerProvider } from './app/context/TimerContext';
 import { useFonts } from 'expo-font';
+import { API_URL } from './app/config/api';
 
-const Stack = createNativeStackNavigator()
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [user, setUser] = useState(null);
-
-  const [timerValues, setTimerValues] = useState({
-      pomodoro: '25',
-      shortBreak: '5',
-      longBreak: '15'
-  });
-
-  const handleTimerUpdate = async (newValues) => {
-      setTimerValues(newValues);
-      try {
-          await AsyncStorage.setItem('timerValues', JSON.stringify(newValues));
-      } catch (error) {
-          console.log('Error saving values:', error);
-      }
-  };
+  const [profileComplete, setProfileComplete] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [fontsLoaded] = useFonts({
     'Anuphan-Regular': require('./app/assets/fonts/Anuphan-Regular.ttf'),
@@ -48,96 +36,93 @@ export default function App() {
     'Anuphan-Thin': require('./app/assets/fonts/Anuphan-Thin.ttf'),
   });
 
-  useEffect(() => {
-    const loadInitialValues = async () => {
-        try {
-            const savedValues = await AsyncStorage.getItem('timerValues');
-            if (savedValues) {
-                setTimerValues(JSON.parse(savedValues));
-            }
-        } catch (error) {
-            console.log('Error loading initial values:', error);
+  const checkProfile = async (user) => {
+    try {
+      console.log('Starting profile check...');
+      const token = await user.getIdToken(true);
+      
+      const mongoResponse = await fetch(`${API_URL}/users/${user.uid}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         }
-    };
-    loadInitialValues();
-  }, []);
-
+      });
+  
+      if (!mongoResponse.ok) {
+        console.log('MongoDB response not ok:', mongoResponse.status);
+        setProfileComplete(false);
+        return false;
+      }
+  
+      const userData = await mongoResponse.json();
+      console.log('User data from MongoDB:', userData);
+  
+      const isComplete = !!(
+        userData.username && 
+        userData.firstName && 
+        userData.lastName
+      );
+  
+      console.log('Profile complete:', isComplete);
+      setProfileComplete(isComplete);
+      return isComplete;
+  
+    } catch (error) {
+      console.error('Profile check error:', error);
+      setProfileComplete(false);
+      return false;
+    }
+  };
+  
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (user) => {
-        setUser(user);
-    });
+    console.log('Auth state changed - Current user:', FIREBASE_AUTH.currentUser?.uid);
     
-    return unsubscribe;
+    const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, async (user) => {
+      setIsLoading(true);
+      if (user) {
+        console.log('User authenticated:', user.uid);
+        const isComplete = await checkProfile(user);
+        console.log('Profile check complete:', isComplete);
+      } else {
+        console.log('No authenticated user');
+        setProfileComplete(false);
+      }
+      setUser(user);
+      setIsLoading(false);
+    });
+  
+    return () => unsubscribe();
   }, []);
-
-  if (!fontsLoaded) {
-    return null;
-  }
 
   return (
     <TimerProvider>
       <NavigationContainer>
         <Stack.Navigator 
           screenOptions={{ animation: 'none' }}
-          initialRouteName='Welcome'
+          initialRouteName={user ? (profileComplete ? 'Home' : 'InfoInput') : 'Welcome'}
         >
           {!user ? (
             <>
-              <Stack.Screen 
-                name='Welcome' 
-                component={WelcomeScreen} 
-                options={{ headerShown: false }} 
-              />
-              <Stack.Screen 
-                name='Login' 
-                component={Login} 
-                options={{ headerShown: false }} 
-              />
-              <Stack.Screen 
-                name='SignUp' 
-                component={SignUp} 
-                options={{ headerShown: false }} 
-              />
-              <Stack.Screen 
-                name='EmailSignUp' 
-                component={EmailSignUp} 
-                options={{ headerShown: false }} 
-              />
+              <Stack.Screen name='Welcome' component={WelcomeScreen} options={{ headerShown: false }} />
+              <Stack.Screen name='Login' component={Login} options={{ headerShown: false }} />
+              <Stack.Screen name='SignUp' component={SignUp} options={{ headerShown: false }} />
+              <Stack.Screen name='EmailSignUp' component={EmailSignUp} options={{ headerShown: false }} />
             </>
+          ) : !profileComplete ? (
+            <Stack.Screen 
+              name='InfoInput' 
+              component={InfoInput}
+              initialParams={{ onProfileUpdate: () => checkProfile(FIREBASE_AUTH.currentUser) }}
+              options={{ headerShown: false, gestureEnabled: false }} 
+            />
           ) : (
             <>
-              <Stack.Screen 
-                name="Home" 
-                options={{ headerShown: false }}>
-                {props => <HomeScreen {...props}
-                timerValues={timerValues} />}
-              </Stack.Screen> 
-              <Stack.Screen 
-                name="Friends" 
-                component={FriendsScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen 
-                name="Posts" 
-                component={Posts}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen 
-                name="Stats" 
-                component={StatsScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen 
-                name="Settings" 
-                options={{ headerShown: false }}>
-                {props => <SettingsScreen {...props} timerValues={timerValues} 
-                onUpdate={handleTimerUpdate} />}
-              </Stack.Screen>
-              <Stack.Screen 
-                name="TimerDurations" 
-                component={TimerDurations}
-                options={{ headerShown: false }}
-              />
+              <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="Friends" component={FriendsScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="Posts" component={Posts} options={{ headerShown: false }} />
+              <Stack.Screen name="Stats" component={StatsScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="TimerDurations" component={TimerDurations} options={{ headerShown: false }} />
             </>
           )}
         </Stack.Navigator>
