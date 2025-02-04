@@ -13,7 +13,13 @@ import { API_URL } from '../config/api';
 function SettingsScreen( { timerValues, onUpdate }) {
     const navigation = useNavigation();
     const route = useRoute();
-
+    const [localValues, setLocalValues] = useState({
+        pomodoro: "25",
+        shortBreak: "5",
+        longBreak: "10"
+    });
+    const [isLoading, setIsLoading] = useState(true);
+    
     const handlePress = () => {
         console.log('button pressed');
     };
@@ -26,6 +32,7 @@ function SettingsScreen( { timerValues, onUpdate }) {
     
     const loadSavedValues = async () => {
         try {
+            setIsLoading(true);
             const user = FIREBASE_AUTH.currentUser;
             if (!user) return;
     
@@ -39,11 +46,14 @@ function SettingsScreen( { timerValues, onUpdate }) {
             if (response.ok) {
                 const data = await response.json();
                 if (data.settings?.timerValues) {
-                    onUpdate(data.settings.timerValues);
+                    setLocalValues(data.settings.timerValues);
+                    onUpdate?.(data.settings.timerValues);
                 }
             }
         } catch (error) {
             console.error('Error loading saved values:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -56,6 +66,8 @@ function SettingsScreen( { timerValues, onUpdate }) {
             alert('Error signing out');
         }
     };
+
+    const displayValues = timerValues || localValues;
 
     return (
         <Background>
@@ -80,9 +92,15 @@ function SettingsScreen( { timerValues, onUpdate }) {
                                         <Text style={[styles.bodyText, { fontFamily: "Anuphan-SemiBold" }]}>long break</Text>
                                     </View>
                                     <View style={styles.pomodoroFrame}>
-                                        <Text style={styles.bodyText}>{timerValues.pomodoro} minutes</Text>
-                                        <Text style={styles.bodyText}>{timerValues.shortBreak} minutes</Text>
-                                        <Text style={styles.bodyText}>{timerValues.longBreak} minutes</Text>
+                                        <Text style={styles.bodyText}>
+                                            {isLoading ? '...' : `${displayValues.pomodoro} minutes`}
+                                        </Text>
+                                        <Text style={styles.bodyText}>
+                                            {isLoading ? '...' : `${displayValues.shortBreak} minutes`}
+                                        </Text>
+                                        <Text style={styles.bodyText}>
+                                            {isLoading ? '...' : `${displayValues.longBreak} minutes`}
+                                        </Text>
                                     </View>
                                 </View>
                             </View>
