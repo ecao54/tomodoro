@@ -1,3 +1,47 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# React Native / Metro
+.expo/
+.expo-shared/
+.bundle/
+
+# iOS / Xcode
+ios/Pods/
+ios/build/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# Android (if added later)
+android/.gradle/
+android/app/build/
+
+# Env files (root and server)
+.env
+.env.*
+server/.env
+server/.env.*
+
+# Service accounts, keys, certs (server)
+server/config/firebase-service-account.json
+server/config/*.pem
+server/config/*.p12
+server/config/*.crt
+server/config/*.key
+
+# Logs
+*.log
+server/logs/
+
+# Coverage / Reports
+coverage/
+
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
